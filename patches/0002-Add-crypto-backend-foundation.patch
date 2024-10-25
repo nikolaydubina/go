@@ -41,7 +41,7 @@ Subject: [PATCH] Add crypto backend foundation
  src/crypto/rsa/rsa_test.go                   |   2 +-
  src/crypto/sha1/sha1.go                      |   2 +-
  src/crypto/sha1/sha1_test.go                 |   2 +-
- src/crypto/sha256/sha256.go                  |  14 +-
+ src/crypto/sha256/sha256.go                  |   6 +-
  src/crypto/sha256/sha256_test.go             |   2 +-
  src/crypto/sha512/sha512.go                  |   2 +-
  src/crypto/sha512/sha512_test.go             |   2 +-
@@ -56,7 +56,7 @@ Subject: [PATCH] Add crypto backend foundation
  src/go/build/deps_test.go                    |   4 +
  src/net/smtp/smtp_test.go                    |  72 ++++---
  src/runtime/runtime_boring.go                |   5 +
- 52 files changed, 808 insertions(+), 108 deletions(-)
+ 52 files changed, 802 insertions(+), 106 deletions(-)
  create mode 100644 src/crypto/ed25519/boring.go
  create mode 100644 src/crypto/ed25519/notboring.go
  create mode 100644 src/crypto/internal/backend/backend_test.go
@@ -452,7 +452,7 @@ index 00000000000000..b0cdd44d81c753
 +	panic("boringcrypto: not available")
 +}
 diff --git a/src/crypto/hmac/hmac.go b/src/crypto/hmac/hmac.go
-index 46ec81b8c58bc9..1563eedf6f78d1 100644
+index b8c909cf015aa7..9f517e8e527363 100644
 --- a/src/crypto/hmac/hmac.go
 +++ b/src/crypto/hmac/hmac.go
 @@ -22,7 +22,7 @@ timing side-channels:
@@ -461,9 +461,9 @@ index 46ec81b8c58bc9..1563eedf6f78d1 100644
  import (
 -	"crypto/internal/boring"
 +	boring "crypto/internal/backend"
+ 	"crypto/internal/fips/hmac"
  	"crypto/subtle"
  	"hash"
- )
 diff --git a/src/crypto/hmac/hmac_test.go b/src/crypto/hmac/hmac_test.go
 index 7accad763244a1..dd3211f2c37af3 100644
 --- a/src/crypto/hmac/hmac_test.go
@@ -538,7 +538,7 @@ index 00000000000000..85bd3ed083f5b2
 +}
 diff --git a/src/crypto/internal/backend/common.go b/src/crypto/internal/backend/common.go
 new file mode 100644
-index 00000000000000..f83ff4abacc1dc
+index 00000000000000..bc595e91024f11
 --- /dev/null
 +++ b/src/crypto/internal/backend/common.go
 @@ -0,0 +1,92 @@
@@ -1268,7 +1268,7 @@ index d03892c57d4e61..d44f70b92661b4 100644
  	"crypto/rand"
  	"encoding"
 diff --git a/src/crypto/sha256/sha256.go b/src/crypto/sha256/sha256.go
-index 7844f191e16b57..5c04e4bb83f2f2 100644
+index d87c689c9001ad..7584c380af0cec 100644
 --- a/src/crypto/sha256/sha256.go
 +++ b/src/crypto/sha256/sha256.go
 @@ -8,7 +8,7 @@ package sha256
@@ -1277,10 +1277,10 @@ index 7844f191e16b57..5c04e4bb83f2f2 100644
  	"crypto"
 -	"crypto/internal/boring"
 +	boring "crypto/internal/backend"
- 	"errors"
+ 	"crypto/internal/fips/sha256"
  	"hash"
- 	"internal/byteorder"
-@@ -159,7 +159,7 @@ func New() hash.Hash {
+ )
+@@ -43,7 +43,7 @@ func New() hash.Hash {
  // [encoding.BinaryUnmarshaler] to marshal and unmarshal the internal
  // state of the hash.
  func New224() hash.Hash {
@@ -1288,30 +1288,8 @@ index 7844f191e16b57..5c04e4bb83f2f2 100644
 +	if boring.Enabled && boring.SupportsHash(crypto.SHA224) {
  		return boring.NewSHA224()
  	}
- 	d := new(digest)
-@@ -178,7 +178,9 @@ func (d *digest) Size() int {
- func (d *digest) BlockSize() int { return BlockSize }
- 
- func (d *digest) Write(p []byte) (nn int, err error) {
--	boring.Unreachable()
-+	if boring.Enabled && (!d.is224 || boring.SupportsHash(crypto.SHA224)) {
-+		boring.Unreachable()
-+	}
- 	nn = len(p)
- 	d.len += uint64(nn)
- 	if d.nx > 0 {
-@@ -202,7 +204,9 @@ func (d *digest) Write(p []byte) (nn int, err error) {
- }
- 
- func (d *digest) Sum(in []byte) []byte {
--	boring.Unreachable()
-+	if boring.Enabled && (!d.is224 || boring.SupportsHash(crypto.SHA224)) {
-+		boring.Unreachable()
-+	}
- 	// Make a copy of d so that caller can keep writing and summing.
- 	d0 := *d
- 	hash := d0.checkSum()
-@@ -263,7 +267,7 @@ func Sum256(data []byte) [Size]byte {
+ 	return sha256.New224()
+@@ -63,7 +63,7 @@ func Sum256(data []byte) [Size]byte {
  
  // Sum224 returns the SHA224 checksum of the data.
  func Sum224(data []byte) [Size224]byte {
@@ -1319,9 +1297,9 @@ index 7844f191e16b57..5c04e4bb83f2f2 100644
 +	if boring.Enabled && boring.SupportsHash(crypto.SHA224) {
  		return boring.SHA224(data)
  	}
- 	var d digest
+ 	h := New224()
 diff --git a/src/crypto/sha256/sha256_test.go b/src/crypto/sha256/sha256_test.go
-index 3237c6a73e6a1e..5a8f4901451018 100644
+index 40be1480dd51d1..0426ce6aebd681 100644
 --- a/src/crypto/sha256/sha256_test.go
 +++ b/src/crypto/sha256/sha256_test.go
 @@ -8,7 +8,7 @@ package sha256
@@ -1331,10 +1309,10 @@ index 3237c6a73e6a1e..5a8f4901451018 100644
 -	"crypto/internal/boring"
 +	boring "crypto/internal/backend"
  	"crypto/internal/cryptotest"
- 	"crypto/rand"
  	"encoding"
+ 	"fmt"
 diff --git a/src/crypto/sha512/sha512.go b/src/crypto/sha512/sha512.go
-index 0e2a34a1e347cf..132b9495e38644 100644
+index 0a12fde7bc060b..ca752598e4343a 100644
 --- a/src/crypto/sha512/sha512.go
 +++ b/src/crypto/sha512/sha512.go
 @@ -12,7 +12,7 @@ package sha512
@@ -1343,11 +1321,11 @@ index 0e2a34a1e347cf..132b9495e38644 100644
  	"crypto"
 -	"crypto/internal/boring"
 +	boring "crypto/internal/backend"
- 	"errors"
+ 	"crypto/internal/fips/sha512"
  	"hash"
- 	"internal/byteorder"
+ )
 diff --git a/src/crypto/sha512/sha512_test.go b/src/crypto/sha512/sha512_test.go
-index cfe6b571975b27..de28aa927044a6 100644
+index 6e3d9bce1cf095..df96879c02d234 100644
 --- a/src/crypto/sha512/sha512_test.go
 +++ b/src/crypto/sha512/sha512_test.go
 @@ -8,7 +8,7 @@ package sha512
@@ -1357,8 +1335,8 @@ index cfe6b571975b27..de28aa927044a6 100644
 -	"crypto/internal/boring"
 +	boring "crypto/internal/backend"
  	"crypto/internal/cryptotest"
- 	"crypto/rand"
  	"encoding"
+ 	"encoding/hex"
 diff --git a/src/crypto/tls/boring_test.go b/src/crypto/tls/boring_test.go
 index 56050421985927..dcbd33167e4499 100644
 --- a/src/crypto/tls/boring_test.go
@@ -1775,12 +1753,12 @@ index 319ac61f49c994..1b2454dbaab264 100644
  	t.Helper()
  	k, err := rsa.GenerateKey(rand.Reader, size)
 diff --git a/src/go/build/deps_test.go b/src/go/build/deps_test.go
-index 3adc26ae2b6e29..f05cec9d7c3253 100644
+index cc9d304bc62820..6509d58264aae0 100644
 --- a/src/go/build/deps_test.go
 +++ b/src/go/build/deps_test.go
-@@ -447,7 +447,9 @@ var depsRules = `
- 
+@@ -463,7 +463,9 @@ var depsRules = `
  	# CRYPTO is core crypto algorithms - no cgo, fmt, net.
+ 	FIPS,
  	crypto/internal/boring/sig,
 +	crypto/internal/boring/fipstls,
  	crypto/internal/boring/syso,
@@ -1788,7 +1766,7 @@ index 3adc26ae2b6e29..f05cec9d7c3253 100644
  	golang.org/x/sys/cpu,
  	hash, embed
  	< crypto
-@@ -458,6 +460,7 @@ var depsRules = `
+@@ -474,6 +476,7 @@ var depsRules = `
  	crypto/cipher,
  	crypto/internal/boring/bcache
  	< crypto/internal/boring
@@ -1796,7 +1774,7 @@ index 3adc26ae2b6e29..f05cec9d7c3253 100644
  	< crypto/boring;
  
  	crypto/internal/alias, math/rand/v2
-@@ -495,6 +498,7 @@ var depsRules = `
+@@ -511,6 +514,7 @@ var depsRules = `
  	# CRYPTO-MATH is core bignum-based crypto - no cgo, net; fmt now ok.
  	CRYPTO, FMT, math/big
  	< crypto/internal/boring/bbig
