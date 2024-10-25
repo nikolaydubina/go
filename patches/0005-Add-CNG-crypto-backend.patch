@@ -473,7 +473,7 @@ index 00000000000000..3d3d13709de5ac
 +	panic("cryptobackend: not available")
 +}
 diff --git a/src/crypto/internal/backend/common.go b/src/crypto/internal/backend/common.go
-index f83ff4abacc1dc..b05374a9d62a97 100644
+index bc595e91024f11..7766d674f5cfaf 100644
 --- a/src/crypto/internal/backend/common.go
 +++ b/src/crypto/internal/backend/common.go
 @@ -68,7 +68,11 @@ func hasSuffix(s, t string) bool {
@@ -689,10 +689,10 @@ index d44f70b92661b4..76726556f80fbd 100644
  
  		h := New()
 diff --git a/src/crypto/sha256/sha256_test.go b/src/crypto/sha256/sha256_test.go
-index 5a8f4901451018..f9549bba2dee59 100644
+index 0426ce6aebd681..bdb55a70a4847c 100644
 --- a/src/crypto/sha256/sha256_test.go
 +++ b/src/crypto/sha256/sha256_test.go
-@@ -14,6 +14,7 @@ import (
+@@ -13,6 +13,7 @@ import (
  	"encoding"
  	"fmt"
  	"hash"
@@ -700,17 +700,17 @@ index 5a8f4901451018..f9549bba2dee59 100644
  	"io"
  	"testing"
  )
-@@ -140,6 +141,9 @@ func TestGolden(t *testing.T) {
+@@ -141,6 +142,9 @@ func testGolden(t *testing.T) {
  }
  
  func TestGoldenMarshal(t *testing.T) {
 +	if goexperiment.CNGCrypto {
 +		t.Skip("CNGCrypto does not support hash marshalling")
 +	}
- 	tests := []struct {
- 		name    string
- 		newHash func() hash.Hash
-@@ -197,6 +201,9 @@ func TestGoldenMarshal(t *testing.T) {
+ 	cryptotest.TestAllImplementations(t, "crypto/sha256", testGoldenMarshal)
+ }
+ 
+@@ -202,6 +206,9 @@ func testGoldenMarshal(t *testing.T) {
  }
  
  func TestMarshalTypeMismatch(t *testing.T) {
@@ -720,7 +720,7 @@ index 5a8f4901451018..f9549bba2dee59 100644
  	h1 := New()
  	h2 := New224()
  
-@@ -286,6 +293,9 @@ func safeSum(h hash.Hash) (sum []byte, err error) {
+@@ -276,6 +283,9 @@ func safeSum(h hash.Hash) (sum []byte, err error) {
  	return h.Sum(nil), nil
  }
  func TestLargeHashes(t *testing.T) {
@@ -731,10 +731,10 @@ index 5a8f4901451018..f9549bba2dee59 100644
  
  		h := New()
 diff --git a/src/crypto/sha512/sha512_test.go b/src/crypto/sha512/sha512_test.go
-index de28aa927044a6..dedebd20e6a2ed 100644
+index df96879c02d234..99451e26a13d79 100644
 --- a/src/crypto/sha512/sha512_test.go
 +++ b/src/crypto/sha512/sha512_test.go
-@@ -15,6 +15,7 @@ import (
+@@ -14,6 +14,7 @@ import (
  	"encoding/hex"
  	"fmt"
  	"hash"
@@ -742,17 +742,17 @@ index de28aa927044a6..dedebd20e6a2ed 100644
  	"io"
  	"testing"
  )
-@@ -720,6 +721,9 @@ func TestGolden(t *testing.T) {
+@@ -725,6 +726,9 @@ func testGolden(t *testing.T) {
  }
  
  func TestGoldenMarshal(t *testing.T) {
 +	if goexperiment.CNGCrypto {
 +		t.Skip("CNGCrypto does not support hash marshalling")
 +	}
- 	tests := []struct {
- 		name    string
- 		newHash func() hash.Hash
-@@ -779,6 +783,9 @@ func TestGoldenMarshal(t *testing.T) {
+ 	cryptotest.TestAllImplementations(t, "crypto/sha512", func(t *testing.T) {
+ 		testGoldenMarshal(t)
+ 	})
+@@ -790,6 +794,9 @@ func testGoldenMarshal(t *testing.T) {
  }
  
  func TestMarshalMismatch(t *testing.T) {
@@ -762,7 +762,7 @@ index de28aa927044a6..dedebd20e6a2ed 100644
  	h := []func() hash.Hash{
  		New,
  		New384,
-@@ -885,6 +892,9 @@ func safeSum(h hash.Hash) (sum []byte, err error) {
+@@ -881,6 +888,9 @@ func safeSum(h hash.Hash) (sum []byte, err error) {
  }
  
  func TestLargeHashes(t *testing.T) {
@@ -929,10 +929,10 @@ index 8ec2c59f2c63e5..87b5f8e316f388 100644
  golang.org/x/crypto v0.25.1-0.20240722173533-bb80217080b0/go.mod h1:T+wALwcMOSE0kXgUAnPAHqTLW+XHgcELELW8VaDgm/M=
  golang.org/x/net v0.27.1-0.20240722181819-765c7e89b3bd h1:pHzwejE8Zkb94bG4nA+fUeskKPFp1HPldrhv62dabro=
 diff --git a/src/go/build/deps_test.go b/src/go/build/deps_test.go
-index 03005f247513cf..c77db5a856b7f6 100644
+index e7e967659de213..83dcaed4cb82ec 100644
 --- a/src/go/build/deps_test.go
 +++ b/src/go/build/deps_test.go
-@@ -459,6 +459,10 @@ var depsRules = `
+@@ -475,6 +475,10 @@ var depsRules = `
  
  	crypto/cipher,
  	crypto/internal/boring/bcache
@@ -943,7 +943,7 @@ index 03005f247513cf..c77db5a856b7f6 100644
  	< github.com/golang-fips/openssl/v2/internal/subtle
  	< github.com/golang-fips/openssl/v2
  	< crypto/internal/boring
-@@ -499,6 +503,7 @@ var depsRules = `
+@@ -515,6 +519,7 @@ var depsRules = `
  
  	# CRYPTO-MATH is core bignum-based crypto - no cgo, net; fmt now ok.
  	CRYPTO, FMT, math/big
