@@ -689,7 +689,7 @@ index d44f70b92661b4..76726556f80fbd 100644
  
  		h := New()
 diff --git a/src/crypto/sha256/sha256_test.go b/src/crypto/sha256/sha256_test.go
-index 0426ce6aebd681..bdb55a70a4847c 100644
+index d2fa4369d068bf..027b705e96113f 100644
 --- a/src/crypto/sha256/sha256_test.go
 +++ b/src/crypto/sha256/sha256_test.go
 @@ -13,6 +13,7 @@ import (
@@ -697,10 +697,10 @@ index 0426ce6aebd681..bdb55a70a4847c 100644
  	"fmt"
  	"hash"
 +	"internal/goexperiment"
+ 	"internal/testenv"
  	"io"
  	"testing"
- )
-@@ -141,6 +142,9 @@ func testGolden(t *testing.T) {
+@@ -142,6 +143,9 @@ func testGolden(t *testing.T) {
  }
  
  func TestGoldenMarshal(t *testing.T) {
@@ -710,7 +710,7 @@ index 0426ce6aebd681..bdb55a70a4847c 100644
  	cryptotest.TestAllImplementations(t, "crypto/sha256", testGoldenMarshal)
  }
  
-@@ -202,6 +206,9 @@ func testGoldenMarshal(t *testing.T) {
+@@ -203,6 +207,9 @@ func testGoldenMarshal(t *testing.T) {
  }
  
  func TestMarshalTypeMismatch(t *testing.T) {
@@ -720,7 +720,7 @@ index 0426ce6aebd681..bdb55a70a4847c 100644
  	h1 := New()
  	h2 := New224()
  
-@@ -276,6 +283,9 @@ func safeSum(h hash.Hash) (sum []byte, err error) {
+@@ -277,6 +284,9 @@ func safeSum(h hash.Hash) (sum []byte, err error) {
  	return h.Sum(nil), nil
  }
  func TestLargeHashes(t *testing.T) {
@@ -731,7 +731,7 @@ index 0426ce6aebd681..bdb55a70a4847c 100644
  
  		h := New()
 diff --git a/src/crypto/sha512/sha512_test.go b/src/crypto/sha512/sha512_test.go
-index df96879c02d234..99451e26a13d79 100644
+index 736504b8fc85a5..582ed2ae870e23 100644
 --- a/src/crypto/sha512/sha512_test.go
 +++ b/src/crypto/sha512/sha512_test.go
 @@ -14,6 +14,7 @@ import (
@@ -739,10 +739,10 @@ index df96879c02d234..99451e26a13d79 100644
  	"fmt"
  	"hash"
 +	"internal/goexperiment"
+ 	"internal/testenv"
  	"io"
  	"testing"
- )
-@@ -725,6 +726,9 @@ func testGolden(t *testing.T) {
+@@ -726,6 +727,9 @@ func testGolden(t *testing.T) {
  }
  
  func TestGoldenMarshal(t *testing.T) {
@@ -752,7 +752,7 @@ index df96879c02d234..99451e26a13d79 100644
  	cryptotest.TestAllImplementations(t, "crypto/sha512", func(t *testing.T) {
  		testGoldenMarshal(t)
  	})
-@@ -790,6 +794,9 @@ func testGoldenMarshal(t *testing.T) {
+@@ -791,6 +795,9 @@ func testGoldenMarshal(t *testing.T) {
  }
  
  func TestMarshalMismatch(t *testing.T) {
@@ -762,7 +762,7 @@ index df96879c02d234..99451e26a13d79 100644
  	h := []func() hash.Hash{
  		New,
  		New384,
-@@ -881,6 +888,9 @@ func safeSum(h hash.Hash) (sum []byte, err error) {
+@@ -882,6 +889,9 @@ func safeSum(h hash.Hash) (sum []byte, err error) {
  }
  
  func TestLargeHashes(t *testing.T) {
