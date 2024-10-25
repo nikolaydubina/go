@@ -280,7 +280,8 @@ stages:
                 condition: and(ne(variables['TEST_BUILDER_SUCCESSFUL'], 'true'), succeeded())
                 ${{ if ne(attempt, 'FINAL') }}:
                   ignoreLASTEXITCODE: true
-                ${{ if eq(parameters.builder.broken, true) }}:
+                ${{ elseif eq(parameters.builder.broken, true) }}:
+                  # Don't fail the job if we are at the last retry and the builder is marked as broken.
                   continueOnError: true
 
           # - ${{ if eq(parameters.builder.config, 'buildandpack' ) }}:
