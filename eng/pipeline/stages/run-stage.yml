@@ -5,7 +5,7 @@
 # This job runs a builder for any OS.
 
 parameters:
-  # { id, os, arch, hostArch, config, distro?, experiment?, fips?, flaky? }
+  # { id, os, arch, hostArch, config, distro?, experiment?, fips?, broken? }
   - name: builder
     type: object
 
@@ -280,7 +280,7 @@ stages:
                 condition: and(ne(variables['TEST_BUILDER_SUCCESSFUL'], 'true'), succeeded())
                 ${{ if ne(attempt, 'FINAL') }}:
                   ignoreLASTEXITCODE: true
-                ${{ if eq(parameters.builder.flaky, true) }}:
+                ${{ if eq(parameters.builder.broken, true) }}:
                   continueOnError: true
 
           # - ${{ if eq(parameters.builder.config, 'buildandpack' ) }}:
