@@ -44,6 +44,10 @@ extends:
         image: golangpublicimages.azurecr.io/go-infra-images/prereqs:cbl-mariner-1.0.20211027-20211201-0cccc22
       mariner1arm64:
         image: golangpublicimages.azurecr.io/go-infra-images/prereqs:cbl-mariner-arm64-1.0-20220314-a003148
+      mariner2:
+        image: mcr.microsoft.com/microsoft-go/infra-images:cbl-mariner-2.0-amd64-default-20241026145219-51209c5
+      mariner2arm64:
+        image: mcr.microsoft.com/microsoft-go/infra-images:cbl-mariner-2.0-arm64-default-20241026144913-51209c5
       azurelinux3:
         image: mcr.microsoft.com/microsoft-go/infra-images:azurelinux-3.0-amd64-default-20241024144202-a3a1203
 
