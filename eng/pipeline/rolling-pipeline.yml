@@ -32,7 +32,7 @@ extends:
         suppressionFile: $(Build.SourcesDirectory)/.config/guardian/.gdnsuppress
     containers:
       ubuntu2204:
-        image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-22.04
+        image: mcr.microsoft.com/microsoft-go/infra-images:ubuntu-22.04-amd64-default-20241026145220-02e8663
       mariner1:
         image: golangpublicimages.azurecr.io/go-infra-images/prereqs:cbl-mariner-1.0.20211027-20211201-0cccc22
       mariner1arm64:
