@@ -22,9 +22,9 @@ resources:
     - container: mariner1arm64
       image: golangpublicimages.azurecr.io/go-infra-images/prereqs:cbl-mariner-arm64-1.0-20220314-a003148
     - container: mariner2
-      image: mcr.microsoft.com/microsoft-go/infra-images:cbl-mariner-2.0-amd64-default-20241029111009-5ed5c8c
+      image: mcr.microsoft.com/microsoft-go/infra-images:cbl-mariner-2.0-amd64-default-20241029143752-6049f85
     - container: mariner2arm64
-      image: mcr.microsoft.com/microsoft-go/infra-images:cbl-mariner-2.0-arm64-default-20241029110416-5ed5c8c
+      image: mcr.microsoft.com/microsoft-go/infra-images:cbl-mariner-2.0-arm64-default-20241029143304-6049f85
     - container: azurelinux3
       image: mcr.microsoft.com/microsoft-go/infra-images:azurelinux-3.0-amd64-default-20241024144202-a3a1203
 
