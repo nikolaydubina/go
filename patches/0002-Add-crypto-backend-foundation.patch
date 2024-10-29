@@ -947,7 +947,7 @@ index 62be347e0c6822..d284b5cf7814a6 100644
  		}
  
 diff --git a/src/crypto/rand/rand.go b/src/crypto/rand/rand.go
-index 7c18d595c2eeaa..6750262c4241e5 100644
+index b3d0a7368f7fa0..c34b994a67a289 100644
 --- a/src/crypto/rand/rand.go
 +++ b/src/crypto/rand/rand.go
 @@ -7,7 +7,7 @@
@@ -956,11 +956,11 @@ index 7c18d595c2eeaa..6750262c4241e5 100644
  import (
 -	"crypto/internal/boring"
 +	boring "crypto/internal/backend"
- 	"internal/godebug"
  	"io"
  	"os"
+ 	"sync"
 diff --git a/src/crypto/rand/rand_test.go b/src/crypto/rand/rand_test.go
-index 2372413279dafe..55e68ed21ca68e 100644
+index 63581b75fdbc7f..dd220c7c544f76 100644
 --- a/src/crypto/rand/rand_test.go
 +++ b/src/crypto/rand/rand_test.go
 @@ -7,7 +7,7 @@ package rand
@@ -1299,7 +1299,7 @@ index d87c689c9001ad..7584c380af0cec 100644
  	}
  	h := New224()
 diff --git a/src/crypto/sha256/sha256_test.go b/src/crypto/sha256/sha256_test.go
-index 40be1480dd51d1..0426ce6aebd681 100644
+index ffd16386515830..d2fa4369d068bf 100644
 --- a/src/crypto/sha256/sha256_test.go
 +++ b/src/crypto/sha256/sha256_test.go
 @@ -8,7 +8,7 @@ package sha256
@@ -1325,7 +1325,7 @@ index 0a12fde7bc060b..ca752598e4343a 100644
  	"hash"
  )
 diff --git a/src/crypto/sha512/sha512_test.go b/src/crypto/sha512/sha512_test.go
-index 6e3d9bce1cf095..df96879c02d234 100644
+index fdad37b1863ae8..736504b8fc85a5 100644
 --- a/src/crypto/sha512/sha512_test.go
 +++ b/src/crypto/sha512/sha512_test.go
 @@ -8,7 +8,7 @@ package sha512
@@ -1753,10 +1753,10 @@ index 319ac61f49c994..1b2454dbaab264 100644
  	t.Helper()
  	k, err := rsa.GenerateKey(rand.Reader, size)
 diff --git a/src/go/build/deps_test.go b/src/go/build/deps_test.go
-index cc9d304bc62820..6509d58264aae0 100644
+index c6a2518f62ff3a..578b4d6f68504c 100644
 --- a/src/go/build/deps_test.go
 +++ b/src/go/build/deps_test.go
-@@ -463,7 +463,9 @@ var depsRules = `
+@@ -464,7 +464,9 @@ var depsRules = `
  	# CRYPTO is core crypto algorithms - no cgo, fmt, net.
  	FIPS,
  	crypto/internal/boring/sig,
@@ -1766,7 +1766,7 @@ index cc9d304bc62820..6509d58264aae0 100644
  	golang.org/x/sys/cpu,
  	hash, embed
  	< crypto
-@@ -474,6 +476,7 @@ var depsRules = `
+@@ -475,6 +477,7 @@ var depsRules = `
  	crypto/cipher,
  	crypto/internal/boring/bcache
  	< crypto/internal/boring
@@ -1774,7 +1774,7 @@ index cc9d304bc62820..6509d58264aae0 100644
  	< crypto/boring;
  
  	crypto/internal/alias, math/rand/v2
-@@ -511,6 +514,7 @@ var depsRules = `
+@@ -512,6 +515,7 @@ var depsRules = `
  	# CRYPTO-MATH is core bignum-based crypto - no cgo, net; fmt now ok.
  	CRYPTO, FMT, math/big
  	< crypto/internal/boring/bbig
@@ -1783,10 +1783,10 @@ index cc9d304bc62820..6509d58264aae0 100644
  	< crypto/internal/mlkem768
  	< crypto/ed25519
 diff --git a/src/net/smtp/smtp_test.go b/src/net/smtp/smtp_test.go
-index c91c99b1f53111..7d273ae17cb83f 100644
+index 389eda9ad54b99..110d60beb0e70c 100644
 --- a/src/net/smtp/smtp_test.go
 +++ b/src/net/smtp/smtp_test.go
-@@ -1105,40 +1105,60 @@ func sendMail(hostPort string) error {
+@@ -1136,40 +1136,60 @@ func sendMail(hostPort string) error {
  
  // localhostCert is a PEM-encoded TLS cert generated from src/crypto/tls:
  //
