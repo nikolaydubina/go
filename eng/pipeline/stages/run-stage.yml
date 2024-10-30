@@ -5,7 +5,7 @@
 # This job runs a builder for any OS.
 
 parameters:
-  # { id, os, arch, hostArch, config, distro?, experiment?, fips? }
+  # { id, os, arch, hostArch, config, distro?, experiment?, fips?, broken? }
   - name: builder
     type: object
 
@@ -57,10 +57,12 @@ stages:
           # longtest has been seen to succeed after 53 minutes. Give around 3x headroom. In the future,
           # we should also give the tests a shorter timeout to make sure this doesn't balloon too far:
           # https://github.com/microsoft/go/issues/568
-          timeoutInMinutes: 180
-        ${{ if startsWith(parameters.builder.config, 'codeql') }}:
+          timeoutInMinutes: 240
+        ${{ elseif startsWith(parameters.builder.config, 'codeql') }}:
           # Allow CodeQL to take a while. https://eng.ms/docs/cloud-ai-platform/devdiv/one-engineering-system-1es/1es-docs/codeql/configuring-codeql3000-ado-pipelines#other-issues
-          timeoutInMinutes: 360
+          timeoutInMinutes: 420
+        ${{ else }}:
+          timeoutInMinutes: 120
 
         pool: ${{ parameters.pool }}
 
@@ -69,15 +71,28 @@ stages:
             ${{ if eq(parameters.builder.hostArch, 'amd64') }}:
               ${{ if eq(parameters.builder.distro, 'ubuntu') }}:
                 container: ubuntu2204
+              ${{ elseif eq(parameters.builder.distro, 'mariner2') }}:
+                container: mariner2
+              ${{ elseif eq(parameters.builder.distro, 'azurelinux3') }}:
+                container: azurelinux3
               ${{ else }}:
                 container: mariner1
             ${{ elseif eq(parameters.builder.hostArch, 'arm64') }}:
-              container: mariner1arm64
+              ${{ if eq(parameters.builder.distro, 'mariner2') }}:
+                container: mariner2arm64
+              ${{ else }}:
+               container: mariner1arm64
 
         variables:
           - group: go-cmdscan-rules
           - name: createPDB
             value: ${{ and(eq(parameters.createSymbols, true), eq(parameters.builder.config, 'buildandpack'), eq(parameters.builder.os, 'windows')) }} # Only create PDBs on Windows
+
+          - ${{ if eq(parameters.builder.config, 'buildandpack') }}:
+            # Make sure a PR doesn't accidentally add a command that uses more than minimal
+            # dependencies to the buildandpack pipeline.
+            - name: MS_GO_UTIL_ALLOW_ONLY_MINIMAL_DEPS
+              value: '1'
 
           - ${{ if eq(parameters.builder.config, 'codeql_inner') }}:
             # Manually specify the repository being scanned by this job because
@@ -139,6 +154,12 @@ stages:
           - ${{ if eq(parameters.builder.config, 'longtest') }}:
             # Set Git authorship info for 'cmd/go TestScript/build_buildvcs_auto'.
             - template: ../steps/set-bot-git-author-task.yml
+
+          # Run the _util tests during the devscript configuration.
+          # It generally shouldn't matter which config these run in, we just need to pick something.
+          - ${{ if eq(parameters.builder.config, 'devscript') }}:
+            - pwsh: eng/run.ps1 selftest
+              displayName: Run _util self-tests
 
           - pwsh: |
               # Apply the patches as staged changes, so the HEAD commit is the same as upstream.
@@ -264,6 +285,9 @@ stages:
                 condition: and(ne(variables['TEST_BUILDER_SUCCESSFUL'], 'true'), succeeded())
                 ${{ if ne(attempt, 'FINAL') }}:
                   ignoreLASTEXITCODE: true
+                ${{ elseif eq(parameters.builder.broken, true) }}:
+                  # Don't fail the job if we are at the last retry and the builder is marked as broken.
+                  continueOnError: true
 
           # - ${{ if eq(parameters.builder.config, 'buildandpack' ) }}:
           #   - ${{ if ne(parameters.releaseVersion, 'nil') }}:
