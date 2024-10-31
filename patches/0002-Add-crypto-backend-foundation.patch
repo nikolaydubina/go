@@ -951,7 +951,7 @@ index 6a8258a67e860c..63dfe196da7a58 100644
  func TestLargeHashes(t *testing.T) {
 +	if boring.Enabled {
 +		if _, ok := New().(encoding.BinaryUnmarshaler); !ok {
-+			t.Skip("BinaryMarshaler not implemented")
++			t.Skip("BinaryUnmarshaler not implemented")
 +		}
 +	}
  	for i, test := range largeUnmarshalTests {
@@ -1392,7 +1392,7 @@ index ffd16386515830..09f7046548bf8f 100644
  func TestLargeHashes(t *testing.T) {
 +	if boring.Enabled {
 +		if _, ok := New().(encoding.BinaryUnmarshaler); !ok {
-+			t.Skip("BinaryMarshaler not implemented")
++			t.Skip("BinaryUnmarshaler not implemented")
 +		}
 +	}
  	for i, test := range largeUnmarshalTests {
@@ -1457,7 +1457,7 @@ index fdad37b1863ae8..78fa1f60a542b5 100644
  func TestLargeHashes(t *testing.T) {
 +	if boring.Enabled {
 +		if _, ok := New().(encoding.BinaryUnmarshaler); !ok {
-+			t.Skip("BinaryMarshaler not implemented")
++			t.Skip("BinaryUnmarshaler not implemented")
 +		}
 +	}
  	for i, test := range largeUnmarshalTests {
