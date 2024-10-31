@@ -27,7 +27,7 @@ Subject: [PATCH] Add crypto backend foundation
  src/crypto/internal/backend/norequirefips.go |   9 +
  src/crypto/internal/backend/stub.s           |  10 +
  src/crypto/md5/md5.go                        |   7 +
- src/crypto/md5/md5_test.go                   |   4 +
+ src/crypto/md5/md5_test.go                   |  14 ++
  src/crypto/purego_test.go                    |   2 +-
  src/crypto/rand/rand.go                      |   2 +-
  src/crypto/rand/rand_test.go                 |   2 +-
@@ -40,11 +40,11 @@ Subject: [PATCH] Add crypto backend foundation
  src/crypto/rsa/rsa.go                        |  21 +-
  src/crypto/rsa/rsa_test.go                   |   2 +-
  src/crypto/sha1/sha1.go                      |   2 +-
- src/crypto/sha1/sha1_test.go                 |   2 +-
+ src/crypto/sha1/sha1_test.go                 |  12 +-
  src/crypto/sha256/sha256.go                  |   6 +-
- src/crypto/sha256/sha256_test.go             |   2 +-
+ src/crypto/sha256/sha256_test.go             |  20 +-
  src/crypto/sha512/sha512.go                  |   2 +-
- src/crypto/sha512/sha512_test.go             |   2 +-
+ src/crypto/sha512/sha512_test.go             |  20 +-
  src/crypto/tls/boring_test.go                |   5 +
  src/crypto/tls/cipher_suites.go              |   2 +-
  src/crypto/tls/handshake_client.go           |  25 ++-
@@ -56,7 +56,7 @@ Subject: [PATCH] Add crypto backend foundation
  src/go/build/deps_test.go                    |   4 +
  src/net/smtp/smtp_test.go                    |  72 ++++---
  src/runtime/runtime_boring.go                |   5 +
- 52 files changed, 802 insertions(+), 106 deletions(-)
+ 52 files changed, 858 insertions(+), 106 deletions(-)
  create mode 100644 src/crypto/ed25519/boring.go
  create mode 100644 src/crypto/ed25519/notboring.go
  create mode 100644 src/crypto/internal/backend/backend_test.go
@@ -912,7 +912,7 @@ index c984c3f4968598..229dd457f8d53c 100644
  	d.Reset()
  	d.Write(data)
 diff --git a/src/crypto/md5/md5_test.go b/src/crypto/md5/md5_test.go
-index 6a8258a67e860c..3a973eebd284a4 100644
+index 6a8258a67e860c..63dfe196da7a58 100644
 --- a/src/crypto/md5/md5_test.go
 +++ b/src/crypto/md5/md5_test.go
 @@ -6,6 +6,7 @@ package md5
@@ -923,7 +923,19 @@ index 6a8258a67e860c..3a973eebd284a4 100644
  	"crypto/internal/cryptotest"
  	"crypto/rand"
  	"encoding"
-@@ -157,6 +158,9 @@ func TestLarge(t *testing.T) {
+@@ -88,6 +89,11 @@ func TestGolden(t *testing.T) {
+ }
+ 
+ func TestGoldenMarshal(t *testing.T) {
++	if boring.Enabled {
++		if _, ok := New().(encoding.BinaryMarshaler); !ok {
++			t.Skip("BinaryMarshaler not implemented")
++		}
++	}
+ 	for _, g := range golden {
+ 		h := New()
+ 		h2 := New()
+@@ -157,6 +163,9 @@ func TestLarge(t *testing.T) {
  
  // Tests that blockGeneric (pure Go) and block (in assembly for amd64, 386, arm) match.
  func TestBlockGeneric(t *testing.T) {
@@ -933,6 +945,18 @@ index 6a8258a67e860c..3a973eebd284a4 100644
  	gen, asm := New().(*digest), New().(*digest)
  	buf := make([]byte, BlockSize*20) // arbitrary factor
  	rand.Read(buf)
+@@ -204,6 +213,11 @@ func safeSum(h hash.Hash) (sum []byte, err error) {
+ }
+ 
+ func TestLargeHashes(t *testing.T) {
++	if boring.Enabled {
++		if _, ok := New().(encoding.BinaryUnmarshaler); !ok {
++			t.Skip("BinaryMarshaler not implemented")
++		}
++	}
+ 	for i, test := range largeUnmarshalTests {
+ 
+ 		h := New()
 diff --git a/src/crypto/purego_test.go b/src/crypto/purego_test.go
 index 62be347e0c6822..d284b5cf7814a6 100644
 --- a/src/crypto/purego_test.go
@@ -1255,7 +1279,7 @@ index 8189d1946d8ea5..8f5f7f27f26fea 100644
  	"hash"
  	"internal/byteorder"
 diff --git a/src/crypto/sha1/sha1_test.go b/src/crypto/sha1/sha1_test.go
-index d03892c57d4e61..d44f70b92661b4 100644
+index d03892c57d4e61..f848659c6e4aa3 100644
 --- a/src/crypto/sha1/sha1_test.go
 +++ b/src/crypto/sha1/sha1_test.go
 @@ -8,7 +8,7 @@ package sha1
@@ -1267,6 +1291,30 @@ index d03892c57d4e61..d44f70b92661b4 100644
  	"crypto/internal/cryptotest"
  	"crypto/rand"
  	"encoding"
+@@ -97,6 +97,11 @@ func TestGolden(t *testing.T) {
+ }
+ 
+ func TestGoldenMarshal(t *testing.T) {
++	if boring.Enabled {
++		if _, ok := New().(encoding.BinaryMarshaler); !ok {
++			t.Skip("BinaryMarshaler not implemented")
++		}
++	}
+ 	h := New()
+ 	h2 := New()
+ 	for _, g := range golden {
+@@ -210,6 +215,11 @@ func safeSum(h hash.Hash) (sum []byte, err error) {
+ }
+ 
+ func TestLargeHashes(t *testing.T) {
++	if boring.Enabled {
++		if _, ok := New().(encoding.BinaryMarshaler); !ok {
++			t.Skip("BinaryMarshaler not implemented")
++		}
++	}
+ 	for i, test := range largeUnmarshalTests {
+ 
+ 		h := New()
 diff --git a/src/crypto/sha256/sha256.go b/src/crypto/sha256/sha256.go
 index d87c689c9001ad..7584c380af0cec 100644
 --- a/src/crypto/sha256/sha256.go
@@ -1299,7 +1347,7 @@ index d87c689c9001ad..7584c380af0cec 100644
  	}
  	h := New224()
 diff --git a/src/crypto/sha256/sha256_test.go b/src/crypto/sha256/sha256_test.go
-index ffd16386515830..d2fa4369d068bf 100644
+index ffd16386515830..09f7046548bf8f 100644
 --- a/src/crypto/sha256/sha256_test.go
 +++ b/src/crypto/sha256/sha256_test.go
 @@ -8,7 +8,7 @@ package sha256
@@ -1311,6 +1359,45 @@ index ffd16386515830..d2fa4369d068bf 100644
  	"crypto/internal/cryptotest"
  	"encoding"
  	"fmt"
+@@ -157,6 +157,11 @@ func testGoldenMarshal(t *testing.T) {
+ 
+ 	for _, tt := range tests {
+ 		t.Run(tt.name, func(t *testing.T) {
++			if boring.Enabled {
++				if _, ok := tt.newHash().(encoding.BinaryMarshaler); !ok {
++					t.Skip("BinaryMarshaler not implemented")
++				}
++			}
+ 			for _, g := range tt.gold {
+ 				h := tt.newHash()
+ 				h2 := tt.newHash()
+@@ -206,6 +211,14 @@ func TestMarshalTypeMismatch(t *testing.T) {
+ 	h1 := New()
+ 	h2 := New224()
+ 
++	if boring.Enabled {
++		_, ok1 := h1.(encoding.BinaryMarshaler)
++		_, ok2 := h2.(encoding.BinaryUnmarshaler)
++		if !ok1 || !ok2 {
++			t.Skip("BinaryMarshaler not implemented")
++		}
++	}
++
+ 	state1, err := h1.(encoding.BinaryMarshaler).MarshalBinary()
+ 	if err != nil {
+ 		t.Errorf("could not marshal: %v", err)
+@@ -277,6 +290,11 @@ func safeSum(h hash.Hash) (sum []byte, err error) {
+ 	return h.Sum(nil), nil
+ }
+ func TestLargeHashes(t *testing.T) {
++	if boring.Enabled {
++		if _, ok := New().(encoding.BinaryUnmarshaler); !ok {
++			t.Skip("BinaryMarshaler not implemented")
++		}
++	}
+ 	for i, test := range largeUnmarshalTests {
+ 
+ 		h := New()
 diff --git a/src/crypto/sha512/sha512.go b/src/crypto/sha512/sha512.go
 index 0a12fde7bc060b..ca752598e4343a 100644
 --- a/src/crypto/sha512/sha512.go
@@ -1325,7 +1412,7 @@ index 0a12fde7bc060b..ca752598e4343a 100644
  	"hash"
  )
 diff --git a/src/crypto/sha512/sha512_test.go b/src/crypto/sha512/sha512_test.go
-index fdad37b1863ae8..736504b8fc85a5 100644
+index fdad37b1863ae8..78fa1f60a542b5 100644
 --- a/src/crypto/sha512/sha512_test.go
 +++ b/src/crypto/sha512/sha512_test.go
 @@ -8,7 +8,7 @@ package sha512
@@ -1337,6 +1424,45 @@ index fdad37b1863ae8..736504b8fc85a5 100644
  	"crypto/internal/cryptotest"
  	"encoding"
  	"encoding/hex"
+@@ -746,6 +746,11 @@ func testGoldenMarshal(t *testing.T) {
+ 	for _, tt := range tests {
+ 		t.Run(tt.name, func(t *testing.T) {
+ 			for _, test := range tt.golden {
++				if boring.Enabled {
++					if _, ok := tt.newHash().(encoding.BinaryMarshaler); !ok {
++						t.Skip("BinaryMarshaler not implemented")
++					}
++				}
+ 				h := tt.newHash()
+ 				h2 := tt.newHash()
+ 
+@@ -807,6 +812,14 @@ func TestMarshalMismatch(t *testing.T) {
+ 			h1 := fn1()
+ 			h2 := fn2()
+ 
++			if boring.Enabled {
++				_, ok1 := h1.(encoding.BinaryMarshaler)
++				_, ok2 := h2.(encoding.BinaryUnmarshaler)
++				if !ok1 || !ok2 {
++					t.Skip("BinaryMarshaler not implemented")
++				}
++			}
++
+ 			state, err := h1.(encoding.BinaryMarshaler).MarshalBinary()
+ 			if err != nil {
+ 				t.Errorf("i=%d: could not marshal: %v", i, err)
+@@ -882,6 +895,11 @@ func safeSum(h hash.Hash) (sum []byte, err error) {
+ }
+ 
+ func TestLargeHashes(t *testing.T) {
++	if boring.Enabled {
++		if _, ok := New().(encoding.BinaryUnmarshaler); !ok {
++			t.Skip("BinaryMarshaler not implemented")
++		}
++	}
+ 	for i, test := range largeUnmarshalTests {
+ 
+ 		h := New()
 diff --git a/src/crypto/tls/boring_test.go b/src/crypto/tls/boring_test.go
 index 56050421985927..dcbd33167e4499 100644
 --- a/src/crypto/tls/boring_test.go
