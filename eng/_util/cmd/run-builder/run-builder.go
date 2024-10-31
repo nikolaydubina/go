@@ -94,7 +94,6 @@ func main() {
 	case "staticlockranking":
 		buildutil.AppendExperimentEnv("staticlockranking")
 	}
-	env("GO_GCFLAGS", "-e")
 
 	// Some Windows builders are slower than others and require more time for the runtime dist tests
 	// in "GOMAXPROCS=2 runtime -cpu=1,2,4 -quick" mode. https://github.com/microsoft/go/issues/700
