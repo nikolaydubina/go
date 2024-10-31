@@ -37,11 +37,10 @@ Subject: [PATCH] Add CNG crypto backend
  src/go/build/deps_test.go                     |   5 +
  src/go/build/vendor_test.go                   |   1 +
  src/hash/example_test.go                      |   2 +
- src/hash/marshal_test.go                      |   4 +
  .../goexperiment/exp_cngcrypto_off.go         |   9 +
  src/internal/goexperiment/exp_cngcrypto_on.go |   9 +
  src/internal/goexperiment/flags.go            |   1 +
- 37 files changed, 394 insertions(+), 26 deletions(-)
+ 36 files changed, 390 insertions(+), 26 deletions(-)
  create mode 100644 src/crypto/ecdsa/badlinkname.go
  create mode 100644 src/crypto/internal/backend/bbig/big_cng.go
  create mode 100644 src/crypto/internal/backend/cng_windows.go
@@ -824,28 +823,6 @@ index f07b9aaa2c4898..2ff6c4827391c0 100644
  package hash_test
  
  import (
-diff --git a/src/hash/marshal_test.go b/src/hash/marshal_test.go
-index 3091f7a67acede..824be4a90fd4db 100644
---- a/src/hash/marshal_test.go
-+++ b/src/hash/marshal_test.go
-@@ -21,6 +21,7 @@ import (
- 	"hash/crc32"
- 	"hash/crc64"
- 	"hash/fnv"
-+	"internal/goexperiment"
- 	"testing"
- )
- 
-@@ -76,6 +77,9 @@ func TestMarshalHash(t *testing.T) {
- 			}
- 			h2m, ok := h2.(encoding.BinaryMarshaler)
- 			if !ok {
-+				if goexperiment.CNGCrypto {
-+					t.Skip("CNGCrypto does not hash marshaling")
-+				}
- 				t.Fatalf("Hash does not implement MarshalBinary")
- 			}
- 			enc, err := h2m.MarshalBinary()
 diff --git a/src/internal/goexperiment/exp_cngcrypto_off.go b/src/internal/goexperiment/exp_cngcrypto_off.go
 new file mode 100644
 index 00000000000000..831460053281e2
