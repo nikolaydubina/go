@@ -1915,11 +1915,11 @@ index c6a2518f62ff3a..578b4d6f68504c 100644
  	< crypto/ed25519
 diff --git a/src/hash/boring_test.go b/src/hash/boring_test.go
 new file mode 100644
-index 00000000000000..cd07ee1c00d379
+index 00000000000000..c90899062a9665
 --- /dev/null
 +++ b/src/hash/boring_test.go
 @@ -0,0 +1,5 @@
-+//go:build systemcrypto
++//go:build goexperiment.boringcrypto
 +
 +package hash_test
 +
@@ -1942,11 +1942,11 @@ index 3091f7a67acede..fead8cc4bec73a 100644
  
 diff --git a/src/hash/notboring_test.go b/src/hash/notboring_test.go
 new file mode 100644
-index 00000000000000..e1874086d3f315
+index 00000000000000..79f8c22f2b7416
 --- /dev/null
 +++ b/src/hash/notboring_test.go
 @@ -0,0 +1,5 @@
-+//go:build !systemcrypto
++//go:build !goexperiment.boringcrypto
 +
 +package hash_test
 +
