@@ -1129,7 +1129,7 @@ index 14ced0e416fde8..41ff48ef919672 100644
 @@ -4,6 +4,7 @@ go 1.23
  
  require (
- 	github.com/golang-fips/openssl/v2 v2.0.4-0.20240909165545-0a2f211a8f95
+ 	github.com/golang-fips/openssl/v2 v2.0.4-0.20241106131105-4bcac10661a9
 +	github.com/microsoft/go-crypto-winnative v0.0.0-20240925170411-b29b5cde7fdd
  	golang.org/x/crypto v0.23.1-0.20240603234054-0b431c7de36a
  	golang.org/x/net v0.25.1-0.20240603202750-6249541f2a6c
@@ -1139,8 +1139,8 @@ index 9fad90e123a9f6..acdcbd6cd5bcb2 100644
 --- a/src/go.sum
 +++ b/src/go.sum
 @@ -1,5 +1,7 @@
- github.com/golang-fips/openssl/v2 v2.0.4-0.20240909165545-0a2f211a8f95 h1:e+JGYwsNT8K58Z9JysRNadrPzxNlGf+0wQXcdlHiv5M=
- github.com/golang-fips/openssl/v2 v2.0.4-0.20240909165545-0a2f211a8f95/go.mod h1:7tuBqX2Zov8Yq5mJ2yzlKhpnxOnWyEzi38AzeWRuQdg=
+ github.com/golang-fips/openssl/v2 v2.0.4-0.20241106131105-4bcac10661a9 h1:LSalTbQ1mC7dgzyVZTvgVBV3RY503kOtn5iIvIXTBvY=
+ github.com/golang-fips/openssl/v2 v2.0.4-0.20241106131105-4bcac10661a9/go.mod h1:7tuBqX2Zov8Yq5mJ2yzlKhpnxOnWyEzi38AzeWRuQdg=
 +github.com/microsoft/go-crypto-winnative v0.0.0-20240925170411-b29b5cde7fdd h1:2ziav5Bdjyv0VYCCftEExmA+QQZ193w8BvSgoEZ+qAY=
 +github.com/microsoft/go-crypto-winnative v0.0.0-20240925170411-b29b5cde7fdd/go.mod h1:fveERXKbeK+XLmOyU24caKnIT/S5nniAX9XCRHfnrM4=
  golang.org/x/crypto v0.23.1-0.20240603234054-0b431c7de36a h1:37MIv+iGfwMYzWJECGyrPCtd5nuqcciRUeJfkNCkCf0=
