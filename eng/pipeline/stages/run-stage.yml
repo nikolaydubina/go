@@ -5,7 +5,7 @@
 # This job runs a builder for any OS.
 
 parameters:
-  # { id, os, arch, hostArch, config, distro?, experiment?, fips? }
+  # { id, os, arch, hostArch, config, distro?, experiment?, fips?, broken? }
   - name: builder
     type: object
 
@@ -71,6 +71,8 @@ stages:
             ${{ if eq(parameters.builder.hostArch, 'amd64') }}:
               ${{ if eq(parameters.builder.distro, 'ubuntu') }}:
                 container: ubuntu2204
+              ${{ elseif eq(parameters.builder.distro, 'azurelinux3') }}:
+                container: azurelinux3
               ${{ else }}:
                 container: mariner1
             ${{ elseif eq(parameters.builder.hostArch, 'arm64') }}:
@@ -266,6 +268,9 @@ stages:
                 condition: and(ne(variables['TEST_BUILDER_SUCCESSFUL'], 'true'), succeeded())
                 ${{ if ne(attempt, 'FINAL') }}:
                   ignoreLASTEXITCODE: true
+                ${{ elseif eq(parameters.builder.broken, true) }}:
+                  # Don't fail the job if we are at the last retry and the builder is marked as broken.
+                  continueOnError: true
 
           # - ${{ if eq(parameters.builder.config, 'buildandpack' ) }}:
           #   - ${{ if ne(parameters.releaseVersion, 'nil') }}:
