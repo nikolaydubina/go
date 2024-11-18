@@ -34,7 +34,6 @@ Subject: [PATCH] Add CNG crypto backend
  src/crypto/tls/boring_test.go                 |   2 +-
  src/crypto/tls/fipsonly/fipsonly.go           |   2 +-
  src/crypto/tls/fipsonly/fipsonly_test.go      |   2 +-
- src/crypto/tls/handshake_server_tls13.go      |  10 +
  src/crypto/tls/notboring.go                   |   2 +-
  src/crypto/x509/boring.go                     |   2 +-
  src/crypto/x509/boring_test.go                |   2 +-
@@ -47,7 +46,7 @@ Subject: [PATCH] Add CNG crypto backend
  .../goexperiment/exp_cngcrypto_off.go         |   9 +
  src/internal/goexperiment/exp_cngcrypto_on.go |   9 +
  src/internal/goexperiment/flags.go            |   1 +
- 43 files changed, 477 insertions(+), 40 deletions(-)
+ 42 files changed, 467 insertions(+), 40 deletions(-)
  create mode 100644 src/crypto/internal/backend/bbig/big_cng.go
  create mode 100644 src/crypto/internal/backend/cng_windows.go
  create mode 100644 src/internal/goexperiment/exp_cngcrypto_off.go
@@ -1016,34 +1015,6 @@ index 9c1d3d279c472f..0ca7a863b73690 100644
  
  package fipsonly
  
-diff --git a/src/crypto/tls/handshake_server_tls13.go b/src/crypto/tls/handshake_server_tls13.go
-index 21d798de37db0a..6c65da0ab04f9f 100644
---- a/src/crypto/tls/handshake_server_tls13.go
-+++ b/src/crypto/tls/handshake_server_tls13.go
-@@ -13,6 +13,7 @@ import (
- 	"encoding/binary"
- 	"errors"
- 	"hash"
-+	"internal/goexperiment"
- 	"io"
- 	"time"
- )
-@@ -409,6 +410,15 @@ func cloneHash(in hash.Hash, h crypto.Hash) hash.Hash {
- 	}
- 	marshaler, ok := in.(binaryMarshaler)
- 	if !ok {
-+		if goexperiment.CNGCrypto {
-+			// CNGCrypto hashes do not implement the binaryMarshaler interface,
-+			// but do implement the Clone method.
-+			if cloner, ok := in.(interface{ Clone() (hash.Hash, error) }); ok {
-+				if out, err := cloner.Clone(); err == nil {
-+					return out
-+				}
-+			}
-+		}
- 		return nil
- 	}
- 	state, err := marshaler.MarshalBinary()
 diff --git a/src/crypto/tls/notboring.go b/src/crypto/tls/notboring.go
 index 1aaabd5ef486aa..5a133c9b2f94c7 100644
 --- a/src/crypto/tls/notboring.go
