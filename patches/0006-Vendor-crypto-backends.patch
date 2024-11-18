@@ -8,42 +8,42 @@ To reproduce, run 'go mod vendor' in 'go/src'.
  .../golang-fips/openssl/v2/.gitleaks.toml     |   9 +
  .../github.com/golang-fips/openssl/v2/LICENSE |  20 +
  .../golang-fips/openssl/v2/README.md          |  66 ++
- .../github.com/golang-fips/openssl/v2/aes.go  | 100 +++
+ .../github.com/golang-fips/openssl/v2/aes.go  | 117 +++
  .../golang-fips/openssl/v2/bbig/big.go        |  37 +
  .../github.com/golang-fips/openssl/v2/big.go  |  11 +
- .../golang-fips/openssl/v2/cipher.go          | 569 +++++++++++++
+ .../golang-fips/openssl/v2/cipher.go          | 569 +++++++++++
  .../github.com/golang-fips/openssl/v2/des.go  | 114 +++
  .../github.com/golang-fips/openssl/v2/ec.go   |  59 ++
  .../github.com/golang-fips/openssl/v2/ecdh.go | 323 +++++++
  .../golang-fips/openssl/v2/ecdsa.go           | 217 +++++
  .../golang-fips/openssl/v2/ed25519.go         | 218 +++++
- .../github.com/golang-fips/openssl/v2/evp.go  | 483 +++++++++++
+ .../github.com/golang-fips/openssl/v2/evp.go  | 483 ++++++++++
  .../golang-fips/openssl/v2/goopenssl.c        | 218 +++++
- .../golang-fips/openssl/v2/goopenssl.h        | 201 +++++
- .../github.com/golang-fips/openssl/v2/hash.go | 793 ++++++++++++++++++
+ .../golang-fips/openssl/v2/goopenssl.h        | 201 ++++
+ .../github.com/golang-fips/openssl/v2/hash.go | 895 ++++++++++++++++++
  .../github.com/golang-fips/openssl/v2/hkdf.go | 174 ++++
- .../github.com/golang-fips/openssl/v2/hmac.go | 238 ++++++
+ .../github.com/golang-fips/openssl/v2/hmac.go | 238 +++++
  .../github.com/golang-fips/openssl/v2/init.go |  64 ++
  .../golang-fips/openssl/v2/init_unix.go       |  31 +
  .../golang-fips/openssl/v2/init_windows.go    |  36 +
- .../golang-fips/openssl/v2/openssl.go         | 419 +++++++++
+ .../golang-fips/openssl/v2/openssl.go         | 456 +++++++++
  .../golang-fips/openssl/v2/pbkdf2.go          |  28 +
  .../openssl/v2/port_evp_md5_sha1.c            | 126 +++
  .../github.com/golang-fips/openssl/v2/rand.go |  20 +
  .../github.com/golang-fips/openssl/v2/rc4.go  |  66 ++
- .../github.com/golang-fips/openssl/v2/rsa.go  | 419 +++++++++
- .../github.com/golang-fips/openssl/v2/shims.h | 370 ++++++++
+ .../github.com/golang-fips/openssl/v2/rsa.go  | 419 ++++++++
+ .../github.com/golang-fips/openssl/v2/shims.h | 374 ++++++++
  .../openssl/v2/thread_setup_unix.c            |  35 +
  .../openssl/v2/thread_setup_windows.c         |  33 +
- .../golang-fips/openssl/v2/tls1prf.go         | 104 +++
+ .../golang-fips/openssl/v2/tls1prf.go         | 104 ++
  .../microsoft/go-crypto-winnative/LICENSE     |  21 +
- .../microsoft/go-crypto-winnative/cng/aes.go  | 389 +++++++++
+ .../microsoft/go-crypto-winnative/cng/aes.go  | 389 ++++++++
  .../go-crypto-winnative/cng/bbig/big.go       |  31 +
  .../microsoft/go-crypto-winnative/cng/big.go  |  30 +
  .../go-crypto-winnative/cng/cipher.go         |  56 ++
  .../microsoft/go-crypto-winnative/cng/cng.go  | 130 +++
  .../microsoft/go-crypto-winnative/cng/des.go  | 107 +++
- .../microsoft/go-crypto-winnative/cng/ecdh.go | 260 ++++++
+ .../microsoft/go-crypto-winnative/cng/ecdh.go | 260 +++++
  .../go-crypto-winnative/cng/ecdsa.go          | 175 ++++
  .../microsoft/go-crypto-winnative/cng/hash.go | 320 +++++++
  .../microsoft/go-crypto-winnative/cng/hkdf.go | 179 ++++
@@ -52,14 +52,14 @@ To reproduce, run 'go mod vendor' in 'go/src'.
  .../go-crypto-winnative/cng/pbkdf2.go         |  74 ++
  .../microsoft/go-crypto-winnative/cng/rand.go |  28 +
  .../microsoft/go-crypto-winnative/cng/rc4.go  |  61 ++
- .../microsoft/go-crypto-winnative/cng/rsa.go  | 374 +++++++++
+ .../microsoft/go-crypto-winnative/cng/rsa.go  | 374 ++++++++
  .../go-crypto-winnative/cng/tls1prf.go        |  92 ++
- .../internal/bcrypt/bcrypt_windows.go         | 284 +++++++
- .../internal/bcrypt/zsyscall_windows.go       | 389 +++++++++
+ .../internal/bcrypt/bcrypt_windows.go         | 284 ++++++
+ .../internal/bcrypt/zsyscall_windows.go       | 389 ++++++++
  .../internal/subtle/aliasing.go               |  32 +
  .../internal/sysdll/sys_windows.go            |  55 ++
  src/vendor/modules.txt                        |  11 +
- 54 files changed, 8912 insertions(+)
+ 54 files changed, 9072 insertions(+)
  create mode 100644 src/vendor/github.com/golang-fips/openssl/v2/.gitleaks.toml
  create mode 100644 src/vendor/github.com/golang-fips/openssl/v2/LICENSE
  create mode 100644 src/vendor/github.com/golang-fips/openssl/v2/README.md
@@ -230,10 +230,10 @@ index 00000000000000..ba6289ecff86d0
 +This project adopts the Go code of conduct: https://go.dev/conduct.
 diff --git a/src/vendor/github.com/golang-fips/openssl/v2/aes.go b/src/vendor/github.com/golang-fips/openssl/v2/aes.go
 new file mode 100644
-index 00000000000000..231b75e2adbc39
+index 00000000000000..95daeacf71e96f
 --- /dev/null
 +++ b/src/vendor/github.com/golang-fips/openssl/v2/aes.go
-@@ -0,0 +1,100 @@
+@@ -0,0 +1,117 @@
 +//go:build !cmd_go_bootstrap
 +
 +package openssl
@@ -256,7 +256,7 @@ index 00000000000000..231b75e2adbc39
 +	NewGCMTLS() (cipher.AEAD, error)
 +}
 +
-+var _ extraModes = (*aesCipher)(nil)
++var _ extraModes = (*aesWithCTR)(nil)
 +
 +func NewAESCipher(key []byte) (cipher.Block, error) {
 +	var kind cipherKind
@@ -274,19 +274,32 @@ index 00000000000000..231b75e2adbc39
 +	if err != nil {
 +		return nil, err
 +	}
-+	return &aesCipher{c}, nil
++	ac := aesCipher{c}
++	// The SymCrypt provider doesn't support AES-CTR.
++	// Prove that the provider supports AES-CTR before
++	// returning an aesWithCTR.
++	if loadCipher(kind, cipherModeCTR) != nil {
++		return &aesWithCTR{ac}, nil
++	}
++	return &ac, nil
 +}
 +
 +// NewGCMTLS returns a GCM cipher specific to TLS
 +// and should not be used for non-TLS purposes.
 +func NewGCMTLS(c cipher.Block) (cipher.AEAD, error) {
-+	return c.(*aesCipher).NewGCMTLS()
++	if c, ok := c.(*aesCipher); ok {
++		return c.NewGCMTLS()
++	}
++	return c.(*aesWithCTR).NewGCMTLS()
 +}
 +
 +// NewGCMTLS13 returns a GCM cipher specific to TLS 1.3 and should not be used
 +// for non-TLS purposes.
 +func NewGCMTLS13(c cipher.Block) (cipher.AEAD, error) {
-+	return c.(*aesCipher).NewGCMTLS13()
++	if c, ok := c.(*aesCipher); ok {
++		return c.NewGCMTLS13()
++	}
++	return c.(*aesWithCTR).NewGCMTLS13()
 +}
 +
 +type aesCipher struct {
@@ -319,10 +332,6 @@ index 00000000000000..231b75e2adbc39
 +	return c.newCBC(iv, cipherOpDecrypt)
 +}
 +
-+func (c *aesCipher) NewCTR(iv []byte) cipher.Stream {
-+	return c.newCTR(iv)
-+}
-+
 +func (c *aesCipher) NewGCM(nonceSize, tagSize int) (cipher.AEAD, error) {
 +	return c.newGCMChecked(nonceSize, tagSize)
 +}
@@ -333,6 +342,14 @@ index 00000000000000..231b75e2adbc39
 +
 +func (c *aesCipher) NewGCMTLS13() (cipher.AEAD, error) {
 +	return c.newGCM(cipherGCMTLS13)
++}
++
++type aesWithCTR struct {
++	aesCipher
++}
++
++func (c *aesWithCTR) NewCTR(iv []byte) cipher.Stream {
++	return c.newCTR(iv)
 +}
 diff --git a/src/vendor/github.com/golang-fips/openssl/v2/bbig/big.go b/src/vendor/github.com/golang-fips/openssl/v2/bbig/big.go
 new file mode 100644
@@ -2853,10 +2870,10 @@ index 00000000000000..a0e2b623a57502
 \ No newline at end of file
 diff --git a/src/vendor/github.com/golang-fips/openssl/v2/hash.go b/src/vendor/github.com/golang-fips/openssl/v2/hash.go
 new file mode 100644
-index 00000000000000..646b4ce295896c
+index 00000000000000..120fc41271f715
 --- /dev/null
 +++ b/src/vendor/github.com/golang-fips/openssl/v2/hash.go
-@@ -0,0 +1,793 @@
+@@ -0,0 +1,895 @@
 +//go:build !cmd_go_bootstrap
 +
 +package openssl
@@ -2869,6 +2886,7 @@ index 00000000000000..646b4ce295896c
 +	"hash"
 +	"runtime"
 +	"strconv"
++	"sync"
 +	"unsafe"
 +)
 +
@@ -2969,6 +2987,37 @@ index 00000000000000..646b4ce295896c
 +	return
 +}
 +
++var isMarshallableCache sync.Map
++
++// isHashMarshallable returns true if the memory layout of cb
++// is known by this library and can therefore be marshalled.
++func isHashMarshallable(ch crypto.Hash) bool {
++	if vMajor == 1 {
++		return true
++	}
++	if v, ok := isMarshallableCache.Load(ch); ok {
++		return v.(bool)
++	}
++	md := cryptoHashToMD(ch)
++	if md == nil {
++		return false
++	}
++	prov := C.go_openssl_EVP_MD_get0_provider(md)
++	if prov == nil {
++		return false
++	}
++	cname := C.go_openssl_OSSL_PROVIDER_get0_name(prov)
++	if cname == nil {
++		return false
++	}
++	name := C.GoString(cname)
++	// We only know the memory layout of the built-in providers.
++	// See evpHash.hashState for more details.
++	marshallable := name == "default" || name == "fips"
++	isMarshallableCache.Store(ch, marshallable)
++	return marshallable
++}
++
 +// evpHash implements generic hash methods.
 +type evpHash struct {
 +	ctx C.GO_EVP_MD_CTX_PTR
@@ -2978,6 +3027,8 @@ index 00000000000000..646b4ce295896c
 +	ctx2      C.GO_EVP_MD_CTX_PTR
 +	size      int
 +	blockSize int
++
++	marshallable bool
 +}
 +
 +func newEvpHash(ch crypto.Hash, size, blockSize int) *evpHash {
@@ -2996,6 +3047,8 @@ index 00000000000000..646b4ce295896c
 +		ctx2:      ctx2,
 +		size:      size,
 +		blockSize: blockSize,
++
++		marshallable: isHashMarshallable(ch),
 +	}
 +	runtime.SetFinalizer(h, (*evpHash).finalize)
 +	return h
@@ -3054,11 +3107,44 @@ index 00000000000000..646b4ce295896c
 +	runtime.KeepAlive(h)
 +}
 +
++// clone returns a new evpHash object that is a deep clone of itself.
++// The duplicate object contains all state and data contained in the
++// original object at the point of duplication.
++func (h *evpHash) clone() (*evpHash, error) {
++	ctx := C.go_openssl_EVP_MD_CTX_new()
++	if ctx == nil {
++		return nil, newOpenSSLError("EVP_MD_CTX_new")
++	}
++	if C.go_openssl_EVP_MD_CTX_copy_ex(ctx, h.ctx) != 1 {
++		C.go_openssl_EVP_MD_CTX_free(ctx)
++		return nil, newOpenSSLError("EVP_MD_CTX_copy_ex")
++	}
++	ctx2 := C.go_openssl_EVP_MD_CTX_new()
++	if ctx2 == nil {
++		C.go_openssl_EVP_MD_CTX_free(ctx)
++		return nil, newOpenSSLError("EVP_MD_CTX_new")
++	}
++	cloned := &evpHash{
++		ctx:          ctx,
++		ctx2:         ctx2,
++		size:         h.size,
++		blockSize:    h.blockSize,
++		marshallable: h.marshallable,
++	}
++	runtime.SetFinalizer(cloned, (*evpHash).finalize)
++	return cloned, nil
++}
++
++var testNotMarshalable bool // Used in tests.
++
 +// hashState returns a pointer to the internal hash structure.
 +//
 +// The EVP_MD_CTX memory layout has changed in OpenSSL 3
 +// and the property holding the internal structure is no longer md_data but algctx.
 +func (h *evpHash) hashState() unsafe.Pointer {
++	if !h.marshallable || testNotMarshalable {
++		return nil
++	}
 +	switch vMajor {
 +	case 1:
 +		// https://github.com/openssl/openssl/blob/0418e993c717a6863f206feaa40673a261de7395/crypto/evp/evp_local.h#L12.
@@ -3394,6 +3480,17 @@ index 00000000000000..646b4ce295896c
 +	return nil
 +}
 +
++// Clone returns a new [hash.Hash] object that is a deep clone of itself.
++// The duplicate object contains all state and data contained in the
++// original object at the point of duplication.
++func (h *sha256Hash) Clone() (hash.Hash, error) {
++	c, err := h.clone()
++	if err != nil {
++		return nil, err
++	}
++	return &sha256Hash{evpHash: c}, nil
++}
++
 +// NewSHA384 returns a new SHA384 hash.
 +func NewSHA384() hash.Hash {
 +	return &sha384Hash{
@@ -3404,6 +3501,17 @@ index 00000000000000..646b4ce295896c
 +type sha384Hash struct {
 +	*evpHash
 +	out [384 / 8]byte
++}
++
++// Clone returns a new [hash.Hash] object that is a deep clone of itself.
++// The duplicate object contains all state and data contained in the
++// original object at the point of duplication.
++func (h *sha384Hash) Clone() (hash.Hash, error) {
++	c, err := h.clone()
++	if err != nil {
++		return nil, err
++	}
++	return &sha384Hash{evpHash: c}, nil
 +}
 +
 +func (h *sha384Hash) Sum(in []byte) []byte {
@@ -3547,6 +3655,17 @@ index 00000000000000..646b4ce295896c
 +	d.nh = n >> 61
 +	d.nx = uint32(n) % 128
 +	return nil
++}
++
++// Clone returns a new [hash.Hash] object that is a deep clone of itself.
++// The duplicate object contains all state and data contained in the
++// original object at the point of duplication.
++func (h *sha512Hash) Clone() (hash.Hash, error) {
++	c, err := h.clone()
++	if err != nil {
++		return nil, err
++	}
++	return &sha512Hash{evpHash: c}, nil
 +}
 +
 +// NewSHA3_224 returns a new SHA3-224 hash.
@@ -4225,10 +4344,10 @@ index 00000000000000..3778e21227abb9
 +}
 diff --git a/src/vendor/github.com/golang-fips/openssl/v2/openssl.go b/src/vendor/github.com/golang-fips/openssl/v2/openssl.go
 new file mode 100644
-index 00000000000000..691bb16f728c9d
+index 00000000000000..a9df964f0ce5e7
 --- /dev/null
 +++ b/src/vendor/github.com/golang-fips/openssl/v2/openssl.go
-@@ -0,0 +1,419 @@
+@@ -0,0 +1,456 @@
 +//go:build !cmd_go_bootstrap
 +
 +// Package openssl provides access to OpenSSL cryptographic functions.
@@ -4320,23 +4439,33 @@ index 00000000000000..691bb16f728c9d
 +var (
 +	providerNameFips    = C.CString("fips")
 +	providerNameDefault = C.CString("default")
++	propFIPS            = C.CString("fips=yes")
++	propNoFIPS          = C.CString("-fips")
++
++	algorithmSHA256 = C.CString("SHA2-256")
 +)
 +
-+// FIPS returns true if OpenSSL is running in FIPS mode, else returns false.
++// FIPS returns true if OpenSSL is running in FIPS mode and there is
++// a provider available that supports FIPS. It returns false otherwise.
 +func FIPS() bool {
 +	switch vMajor {
 +	case 1:
 +		return C.go_openssl_FIPS_mode() == 1
 +	case 3:
-+		// If FIPS is not enabled via default properties, then we are sure FIPS is not used.
-+		if C.go_openssl_EVP_default_properties_is_fips_enabled(nil) == 0 {
++		// Check if the default properties contain `fips=1`.
++		if C.go_openssl_EVP_default_properties_is_fips_enabled(nil) != 1 {
++			// Note that it is still possible that the provider used by default is FIPS-compliant,
++			// but that wouldn't be a system or user requirement.
 +			return false
 +		}
-+		// EVP_default_properties_is_fips_enabled can return true even if the FIPS provider isn't loaded,
-+		// it is only based on the default properties.
-+		// We can be sure that the FIPS provider is available if we can fetch an algorithm, e.g., SHA2-256,
-+		// explicitly setting `fips=yes`.
-+		return C.go_openssl_OSSL_PROVIDER_available(nil, providerNameFips) == 1
++		// Check if the SHA-256 algorithm is available. If it is, then we can be sure that there is a provider available that matches
++		// the `fips=1` query. Most notably, this works for the common case of using the built-in FIPS provider.
++		//
++		// Note that this approach has a small chance of false negative if the FIPS provider doesn't provide the SHA-256 algorithm,
++		// but that is highly unlikely because SHA-256 is one of the most common algorithms and fundamental to many cryptographic operations.
++		// It also has a small chance of false positive if the FIPS provider implements the SHA-256 algorithm but not the other algorithms
++		// used by the caller application, but that is also unlikely because the FIPS provider should provide all common algorithms.
++		return proveSHA256(nil)
 +	default:
 +		panic(errUnsupportedVersion())
 +	}
@@ -4344,11 +4473,15 @@ index 00000000000000..691bb16f728c9d
 +
 +// SetFIPS enables or disables FIPS mode.
 +//
-+// For OpenSSL 3, the `fips` provider is loaded if enabled is true,
-+// else the `default` provider is loaded.
-+func SetFIPS(enabled bool) error {
++// For OpenSSL 3, if there is no provider available that supports FIPS mode,
++// SetFIPS will try to load a built-in provider that supports FIPS mode.
++func SetFIPS(enable bool) error {
++	if FIPS() == enable {
++		// Already in the desired state.
++		return nil
++	}
 +	var mode C.int
-+	if enabled {
++	if enable {
 +		mode = C.int(1)
 +	} else {
 +		mode = C.int(0)
@@ -4360,30 +4493,53 @@ index 00000000000000..691bb16f728c9d
 +		}
 +		return nil
 +	case 3:
-+		var provName *C.char
-+		if enabled {
++		var shaProps, provName *C.char
++		if enable {
++			shaProps = propFIPS
 +			provName = providerNameFips
 +		} else {
++			shaProps = propNoFIPS
 +			provName = providerNameDefault
 +		}
-+		// Check if there is any provider that matches props.
-+		if C.go_openssl_OSSL_PROVIDER_available(nil, provName) != 1 {
-+			// If not, fallback to provName provider.
-+			if C.go_openssl_OSSL_PROVIDER_load(nil, provName) == nil {
-+				return newOpenSSLError("OSSL_PROVIDER_try_load")
-+			}
-+			// Make sure we now have a provider available.
-+			if C.go_openssl_OSSL_PROVIDER_available(nil, provName) != 1 {
-+				return fail("SetFIPS(" + strconv.FormatBool(enabled) + ") not supported")
++		if !proveSHA256(shaProps) {
++			// There is no provider available that supports the desired FIPS mode.
++			// Try to load the built-in provider associated with the given mode.
++			if C.go_openssl_OSSL_PROVIDER_try_load(nil, provName, 1) == nil {
++				// The built-in provider was not loaded successfully, we can't enable FIPS mode.
++				C.go_openssl_ERR_clear_error()
++				return errors.New("openssl: FIPS mode not supported by any provider")
 +			}
 +		}
 +		if C.go_openssl_EVP_default_properties_enable_fips(nil, mode) != 1 {
-+			return newOpenSSLError("openssl: EVP_default_properties_enable_fips")
++			return newOpenSSLError("EVP_default_properties_enable_fips")
 +		}
 +		return nil
 +	default:
 +		panic(errUnsupportedVersion())
 +	}
++}
++
++// proveSHA256 checks if the SHA-256 algorithm is available
++// using the given properties.
++func proveSHA256(props *C.char) bool {
++	md := C.go_openssl_EVP_MD_fetch(nil, algorithmSHA256, props)
++	if md == nil {
++		C.go_openssl_ERR_clear_error()
++		return false
++	}
++	C.go_openssl_EVP_MD_free(md)
++	return true
++}
++
++// isProviderAvailable checks if the provider with the given name is available.
++// This function is used in export_test.go, but must be defined here as test files can't access C functions.
++func isProviderAvailable(name string) bool {
++	if vMajor == 1 {
++		return false
++	}
++	providerName := C.CString(name)
++	defer C.free(unsafe.Pointer(providerName))
++	return C.go_openssl_OSSL_PROVIDER_available(nil, providerName) == 1
 +}
 +
 +// noescape hides a pointer from escape analysis. noescape is
@@ -5339,10 +5495,10 @@ index 00000000000000..5aef65b84f6781
 +}
 diff --git a/src/vendor/github.com/golang-fips/openssl/v2/shims.h b/src/vendor/github.com/golang-fips/openssl/v2/shims.h
 new file mode 100644
-index 00000000000000..4457a3e491c806
+index 00000000000000..8194a2fce71b5b
 --- /dev/null
 +++ b/src/vendor/github.com/golang-fips/openssl/v2/shims.h
-@@ -0,0 +1,370 @@
+@@ -0,0 +1,374 @@
 +#include <stdlib.h> // size_t
 +#include <stdint.h> // uint64_t
 +
@@ -5512,6 +5668,7 @@ index 00000000000000..4457a3e491c806
 +// #endif
 +#define FOR_ALL_OPENSSL_FUNCTIONS \
 +DEFINEFUNC(void, ERR_error_string_n, (unsigned long e, char *buf, size_t len), (e, buf, len)) \
++DEFINEFUNC(void, ERR_clear_error, (void), ()) \
 +DEFINEFUNC_LEGACY_1(unsigned long, ERR_get_error_line, (const char **file, int *line), (file, line)) \
 +DEFINEFUNC_3_0(unsigned long, ERR_get_error_all, (const char **file, int *line, const char **func, const char **data, int *flags), (file, line, func, data, flags)) \
 +DEFINEFUNC_RENAMED_1_1(const char *, OpenSSL_version, SSLeay_version, (int type), (type)) \
@@ -5533,14 +5690,17 @@ index 00000000000000..4457a3e491c806
 +DEFINEFUNC_3_0(int, EVP_default_properties_is_fips_enabled, (GO_OSSL_LIB_CTX_PTR libctx), (libctx)) \
 +DEFINEFUNC_3_0(int, EVP_default_properties_enable_fips, (GO_OSSL_LIB_CTX_PTR libctx, int enable), (libctx, enable)) \
 +DEFINEFUNC_3_0(int, OSSL_PROVIDER_available, (GO_OSSL_LIB_CTX_PTR libctx, const char *name), (libctx, name)) \
-+DEFINEFUNC_3_0(GO_OSSL_PROVIDER_PTR, OSSL_PROVIDER_load, (GO_OSSL_LIB_CTX_PTR libctx, const char *name), (libctx, name)) \
++DEFINEFUNC_3_0(GO_OSSL_PROVIDER_PTR, OSSL_PROVIDER_try_load, (GO_OSSL_LIB_CTX_PTR libctx, const char *name, int retain_fallbacks), (libctx, name, retain_fallbacks)) \
++DEFINEFUNC_3_0(const char *, OSSL_PROVIDER_get0_name, (const GO_OSSL_PROVIDER_PTR prov), (prov)) \
 +DEFINEFUNC_3_0(GO_EVP_MD_PTR, EVP_MD_fetch, (GO_OSSL_LIB_CTX_PTR ctx, const char *algorithm, const char *properties), (ctx, algorithm, properties)) \
 +DEFINEFUNC_3_0(void, EVP_MD_free, (GO_EVP_MD_PTR md), (md)) \
 +DEFINEFUNC_3_0(const char *, EVP_MD_get0_name, (const GO_EVP_MD_PTR md), (md)) \
++DEFINEFUNC_3_0(const GO_OSSL_PROVIDER_PTR, EVP_MD_get0_provider, (const GO_EVP_MD_PTR md), (md)) \
 +DEFINEFUNC(int, RAND_bytes, (unsigned char *arg0, int arg1), (arg0, arg1)) \
 +DEFINEFUNC_RENAMED_1_1(GO_EVP_MD_CTX_PTR, EVP_MD_CTX_new, EVP_MD_CTX_create, (void), ()) \
 +DEFINEFUNC_RENAMED_1_1(void, EVP_MD_CTX_free, EVP_MD_CTX_destroy, (GO_EVP_MD_CTX_PTR ctx), (ctx)) \
 +DEFINEFUNC(int, EVP_MD_CTX_copy, (GO_EVP_MD_CTX_PTR out, const GO_EVP_MD_CTX_PTR in), (out, in)) \
++DEFINEFUNC(int, EVP_MD_CTX_copy_ex, (GO_EVP_MD_CTX_PTR out, const GO_EVP_MD_CTX_PTR in), (out, in)) \
 +DEFINEFUNC(int, EVP_Digest, (const void *data, size_t count, unsigned char *md, unsigned int *size, const GO_EVP_MD_PTR type, GO_ENGINE_PTR impl), (data, count, md, size, type, impl)) \
 +DEFINEFUNC(int, EVP_DigestInit_ex, (GO_EVP_MD_CTX_PTR ctx, const GO_EVP_MD_PTR type, GO_ENGINE_PTR impl), (ctx, type, impl)) \
 +DEFINEFUNC(int, EVP_DigestInit, (GO_EVP_MD_CTX_PTR ctx, const GO_EVP_MD_PTR type), (ctx, type)) \
@@ -9336,11 +9496,11 @@ index 00000000000000..1722410e5af193
 +	return getSystemDirectory() + "\\" + dll
 +}
 diff --git a/src/vendor/modules.txt b/src/vendor/modules.txt
-index 9a234e59b10c8c..7d5a2c63b4ec56 100644
+index 9a234e59b10c8c..832d0ac91cdaea 100644
 --- a/src/vendor/modules.txt
 +++ b/src/vendor/modules.txt
 @@ -1,3 +1,14 @@
-+# github.com/golang-fips/openssl/v2 v2.0.0-rc.3.0.20241107084111-65495925c2cb
++# github.com/golang-fips/openssl/v2 v2.0.0-rc.3.0.20241114123242-248af7388443
 +## explicit; go 1.20
 +github.com/golang-fips/openssl/v2
 +github.com/golang-fips/openssl/v2/bbig
