@@ -5,8 +5,8 @@ Subject: [PATCH] Add BoringSSL crypto backend
 
 ---
  .../internal/backend/bbig/big_boring.go       |  12 +
- src/crypto/internal/backend/boring_linux.go   | 225 ++++++++++++++++++
- 2 files changed, 237 insertions(+)
+ src/crypto/internal/backend/boring_linux.go   | 233 ++++++++++++++++++
+ 2 files changed, 245 insertions(+)
  create mode 100644 src/crypto/internal/backend/bbig/big_boring.go
  create mode 100644 src/crypto/internal/backend/boring_linux.go
 
@@ -30,10 +30,10 @@ index 00000000000000..0b62cef68546d0
 +var Dec = bbig.Dec
 diff --git a/src/crypto/internal/backend/boring_linux.go b/src/crypto/internal/backend/boring_linux.go
 new file mode 100644
-index 00000000000000..7c5fbeea717618
+index 00000000000000..6cecf976fa6a9b
 --- /dev/null
 +++ b/src/crypto/internal/backend/boring_linux.go
-@@ -0,0 +1,225 @@
+@@ -0,0 +1,233 @@
 +// Copyright 2017 The Go Authors. All rights reserved.
 +// Use of this source code is governed by a BSD-style
 +// license that can be found in the LICENSE file.
@@ -82,8 +82,8 @@ index 00000000000000..7c5fbeea717618
 +
 +func NewHMAC(h func() hash.Hash, key []byte) hash.Hash { return boring.NewHMAC(h, key) }
 +
-+func NewAESCipher(key []byte) (cipher.Block, error) { return boring.NewAESCipher(key) }
-+func NewGCMTLS(c cipher.Block) (cipher.AEAD, error) { return boring.NewGCMTLS(c) }
++func NewAESCipher(key []byte) (cipher.Block, error)   { return boring.NewAESCipher(key) }
++func NewGCMTLS(c cipher.Block) (cipher.AEAD, error)   { return boring.NewGCMTLS(c) }
 +func NewGCMTLS13(c cipher.Block) (cipher.AEAD, error) { return boring.NewGCMTLS13(c) }
 +
 +type PublicKeyECDSA = boring.PublicKeyECDSA
@@ -257,5 +257,13 @@ index 00000000000000..7c5fbeea717618
 +}
 +
 +func VerifyEd25519(pub *PublicKeyEd25519, message, sig []byte) error {
++	panic("cryptobackend: not available")
++}
++
++func SupportsDSA(l, n int) bool {
++	return false
++}
++
++func GenerateDSAParameters(l, n int) (p, q, g boring.BigInt, err error) {
 +	panic("cryptobackend: not available")
 +}
