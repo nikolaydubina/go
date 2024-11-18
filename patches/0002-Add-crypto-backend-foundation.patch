@@ -48,6 +48,7 @@ Subject: [PATCH] Add crypto backend foundation
  src/crypto/tls/cipher_suites.go              |   2 +-
  src/crypto/tls/handshake_client.go           |  25 ++-
  src/crypto/tls/handshake_server.go           |  25 ++-
+ src/crypto/tls/handshake_server_tls13.go     |   9 +
  src/crypto/tls/key_schedule.go               |  18 +-
  src/crypto/tls/prf.go                        |  77 +++++---
  src/crypto/tls/prf_test.go                   |  12 +-
@@ -55,7 +56,7 @@ Subject: [PATCH] Add crypto backend foundation
  src/go/build/deps_test.go                    |   4 +
  src/net/smtp/smtp_test.go                    |  72 ++++---
  src/runtime/runtime_boring.go                |   5 +
- 51 files changed, 764 insertions(+), 93 deletions(-)
+ 52 files changed, 773 insertions(+), 93 deletions(-)
  create mode 100644 src/crypto/ed25519/boring.go
  create mode 100644 src/crypto/ed25519/notboring.go
  create mode 100644 src/crypto/internal/backend/backend_test.go
@@ -1338,6 +1339,26 @@ index ac3d915d1746d7..631db82b9ab3ae 100644
  	if _, err := hs.c.writeHandshakeRecord(finished, &hs.finishedHash); err != nil {
  		return err
  	}
+diff --git a/src/crypto/tls/handshake_server_tls13.go b/src/crypto/tls/handshake_server_tls13.go
+index 503a732e05765e..ad6585d8653cf5 100644
+--- a/src/crypto/tls/handshake_server_tls13.go
++++ b/src/crypto/tls/handshake_server_tls13.go
+@@ -435,6 +435,15 @@ func (hs *serverHandshakeStateTLS13) checkForResumption() error {
+ // interfaces implemented by standard library hashes to clone the state of in
+ // to a new instance of h. It returns nil if the operation fails.
+ func cloneHash(in hash.Hash, h crypto.Hash) hash.Hash {
++	if boring.Enabled {
++		// CNG and OpenSSL with SymCrypt hash functions do not implement the
++		// encoding.BinaryMarshaler interface, but they do implement the Clone method.
++		if cloner, ok := in.(interface{ Clone() (hash.Hash, error) }); ok {
++			if out, err := cloner.Clone(); err == nil {
++				return out
++			}
++		}
++	}
+ 	// Recreate the interface to avoid importing encoding.
+ 	type binaryMarshaler interface {
+ 		MarshalBinary() (data []byte, err error)
 diff --git a/src/crypto/tls/key_schedule.go b/src/crypto/tls/key_schedule.go
 index 1636baf79e7288..c9a5877d3d504f 100644
 --- a/src/crypto/tls/key_schedule.go
