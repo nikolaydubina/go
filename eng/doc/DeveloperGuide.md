@@ -138,6 +138,66 @@ You can use your build of `go` in VS Code by following these steps:
 1. Open the command palette.
 1. Search for `Developer: Reload Window` and select it.
 
-## Making changes to go/src
+## Making Changes to `go/src`
 
-TODO
+### Preparing `go/src` folder
+As mentioned above, after downloading the submodule using the command:
+
+```bash
+git submodule update --init --recursive
+```
+
+and applying all changes from patch files with:
+
+```bash
+git go-patch apply
+```
+
+fully prepared go/src directory will be created. From this point forward, all tasks related to vendoring, updating the go.mod file, and running tests should exclusively utilize the Go toolchain provided by the go submodule.
+
+It is crucial to note that the Go version and source code within the submodule may differ from your local setup. As a result, tests that pass in your local environment may fail in the submodule environment, and tests that pass in the submodule may fail locally. Always validate your changes within the submodule context to ensure compatibility and consistency.
+
+### Making Changes
+
+Once the `go/src` folder is prepared, any modifications made to this directory will be tracked by the Git history of the submodule. You can view these changes by running:
+
+```bash
+git status
+```
+
+To create patch files from the changes, you must commit them. Only committed changes will be extracted by go-patch and included in the patch files.
+
+### Generating New Patch Files
+
+After making changes in the `go/src` directory, you must commit your changes following the standard Git process. For example:
+
+```bash
+git add . --all
+git commit -m "example"
+```
+
+This will create a commit with the message "example" in the Git log. 
+
+Then, when you run:
+
+```bash
+git go-patch extract
+```
+
+The `go-patch` command will generate a patch file under the `go/patches` directory. The patch file will be prefixed with a serial number (one greater than the number of existing patch files), followed by a dash-separated commit message.
+
+### Squashing Changes to Existing Patch Files
+
+Creating new patch files is not always necessary when there are existing patch files with similar purposes for the same files. In such cases, you can squash new commits on top of the existing ones to update their contents. The go-patch extract command will detect the differences in these commits and regenerate the patch files with the updated contents.
+
+Before starting work, please check the go/patches folder for any existing patch files related to the files you're working on. This helps maintain a clean repository by avoiding redundant patch files.
+
+### Rolling Back Changes in `go/src`
+
+We do not retain changes in the submodule after generating patch files, as this approach is similar to maintaining a fork. The submodule is pinned to a specific commit hash, and we always start from that point, applying patch files on top of it. Therefore, once the work is complete and patch files are generated, it is essential to clean up the working directory. 
+
+Additionally, any new commits will cause `git go-patch extract` to generate new patch files. To return the `go/src` directory to its initial state after completing your work, run the following command:
+
+```bash
+git submodule update --init --recursive --checkout
+```
