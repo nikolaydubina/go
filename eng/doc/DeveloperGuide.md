@@ -140,25 +140,6 @@ You can use your build of `go` in VS Code by following these steps:
 
 ## Making Changes to `go/src`
 
-### Preparing `go/src` folder
-As mentioned above, after downloading the submodule using the command:
-
-```bash
-git submodule update --init --recursive
-```
-
-and applying all changes from patch files with:
-
-```bash
-git go-patch apply
-```
-
-fully prepared go/src directory will be created. From this point forward, all tasks related to vendoring, updating the go.mod file, and running tests should exclusively utilize the Go toolchain provided by the go submodule.
-
-It is crucial to note that the Go version and source code within the submodule may differ from your local setup. As a result, tests that pass in your local environment may fail in the submodule environment, and tests that pass in the submodule may fail locally. Always validate your changes within the submodule context to ensure compatibility and consistency.
-
-### Making Changes
-
 Once the `go/src` folder is prepared, any modifications made to this directory will be tracked by the Git history of the submodule. You can view these changes by running:
 
 ```bash
