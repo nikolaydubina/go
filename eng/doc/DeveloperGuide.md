@@ -138,7 +138,7 @@ You can use your build of `go` in VS Code by following these steps:
 1. Open the command palette.
 1. Search for `Developer: Reload Window` and select it.
 
-## Making Changes to `go/src`
+## Making changes to `go/src`
 
 Once the `go/src` folder is prepared, any modifications made to this directory will be tracked by the Git history of the submodule. You can view these changes by running:
 
