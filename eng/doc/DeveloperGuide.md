@@ -173,12 +173,11 @@ Creating new patch files is not always necessary when there are existing patch f
 
 Before starting work, please check the go/patches folder for any existing patch files related to the files you're working on. This helps maintain a clean repository by avoiding redundant patch files.
 
-### Rolling Back Changes in `go/src`
+### Submitting Changes
 
-We do not retain changes in the submodule after generating patch files, as this approach is similar to maintaining a fork. The submodule is pinned to a specific commit hash, and we always start from that point, applying patch files on top of it. Therefore, once the work is complete and patch files are generated, it is essential to clean up the working directory. 
-
-Additionally, any new commits will cause `git go-patch extract` to generate new patch files. To return the `go/src` directory to its initial state after completing your work, run the following command:
-
+When working with the `go/src` submodule, changes should not be committed directly. Instead, we use patch files to manage modifications. Since the submodule is pinned to a specific commit hash, we always start from that state and apply patch files on top. This approach avoids the need to maintain a fork and ensures consistency.
+After generating the required patch files and completing your work, it is crucial to clean up the submodule to prevent any changes from being committed. To restore the submodule to its original state, execute the following command:
 ```bash
 git submodule update --init --recursive --checkout
 ```
+This ensures the submodule remains clean and aligned with its designated commit state. Once done, you can proceed to commit the patch files to your pull request.
