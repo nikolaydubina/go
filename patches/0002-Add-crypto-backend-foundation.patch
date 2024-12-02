@@ -3,7 +3,6 @@ From: qmuntal <qmuntaldiaz@microsoft.com>
 Date: Thu, 30 Jun 2022 10:03:03 +0200
 Subject: [PATCH] Add crypto backend foundation
 
-fix:nobackend panic consistently without return
 ---
  src/crypto/aes/cipher.go                     |   2 +-
  src/crypto/aes/cipher_asm.go                 |   2 +-
