@@ -8,6 +8,7 @@ Subject: [PATCH] Add crypto backend foundation
  src/crypto/aes/cipher_asm.go                 |   2 +-
  src/crypto/boring/boring.go                  |   2 +-
  src/crypto/des/cipher.go                     |   7 +
+ src/crypto/dsa/dsa.go                        |  13 ++
  src/crypto/ecdh/ecdh.go                      |   2 +-
  src/crypto/ecdh/nist.go                      |   2 +-
  src/crypto/ecdsa/boring.go                   |   4 +-
@@ -23,7 +24,7 @@ Subject: [PATCH] Add crypto backend foundation
  src/crypto/internal/backend/bbig/big.go      |  17 ++
  src/crypto/internal/backend/common.go        |  92 +++++++++
  src/crypto/internal/backend/isrequirefips.go |   9 +
- src/crypto/internal/backend/nobackend.go     | 193 +++++++++++++++++++
+ src/crypto/internal/backend/nobackend.go     | 201 +++++++++++++++++++
  src/crypto/internal/backend/norequirefips.go |   9 +
  src/crypto/internal/backend/stub.s           |  10 +
  src/crypto/md5/md5.go                        |   7 +
@@ -51,7 +52,7 @@ Subject: [PATCH] Add crypto backend foundation
  src/crypto/tls/handshake_server.go           |  25 ++-
  src/crypto/tls/handshake_server_tls13.go     |  10 +
  src/crypto/tls/key_schedule.go               |  18 +-
- src/crypto/tls/prf.go                        |  77 +++++---
+ src/crypto/tls/prf.go                        |  77 ++++---
  src/crypto/tls/prf_test.go                   |  12 +-
  src/crypto/x509/boring_test.go               |   5 +
  src/go/build/deps_test.go                    |   4 +
@@ -60,7 +61,7 @@ Subject: [PATCH] Add crypto backend foundation
  src/hash/notboring_test.go                   |   5 +
  src/net/smtp/smtp_test.go                    |  72 ++++---
  src/runtime/runtime_boring.go                |   5 +
- 56 files changed, 893 insertions(+), 106 deletions(-)
+ 57 files changed, 914 insertions(+), 106 deletions(-)
  create mode 100644 src/crypto/ed25519/boring.go
  create mode 100644 src/crypto/ed25519/notboring.go
  create mode 100644 src/crypto/internal/backend/backend_test.go
@@ -144,6 +145,37 @@ index 04b73e7d3bf758..0891652a4566fb 100644
  
  	c := new(tripleDESCipher)
  	c.cipher1.generateSubkeys(key[:8])
+diff --git a/src/crypto/dsa/dsa.go b/src/crypto/dsa/dsa.go
+index 4524bd492feba0..3937865aee7ef8 100644
+--- a/src/crypto/dsa/dsa.go
++++ b/src/crypto/dsa/dsa.go
+@@ -18,6 +18,8 @@ import (
+ 	"io"
+ 	"math/big"
+ 
++	boring "crypto/internal/backend"
++	"crypto/internal/backend/bbig"
+ 	"crypto/internal/randutil"
+ )
+ 
+@@ -86,6 +88,17 @@ func GenerateParameters(params *Parameters, rand io.Reader, sizes ParameterSizes
+ 		return errors.New("crypto/dsa: invalid ParameterSizes")
+ 	}
+ 
++	if boring.Enabled && boring.SupportsDSA(L, N) {
++		p, q, g, err := boring.GenerateDSAParameters(L, N)
++		if err != nil {
++			return err
++		}
++		params.P = bbig.Dec(p)
++		params.Q = bbig.Dec(q)
++		params.G = bbig.Dec(g)
++		return nil
++	}
++
+ 	qBytes := make([]byte, N/8)
+ 	pBytes := make([]byte, L/8)
+ 
 diff --git a/src/crypto/ecdh/ecdh.go b/src/crypto/ecdh/ecdh.go
 index b7c26f91e57f02..7a12e2bbaaafd1 100644
 --- a/src/crypto/ecdh/ecdh.go
@@ -657,10 +689,10 @@ index 00000000000000..e5d7570d6d4363
 +const isRequireFIPS = true
 diff --git a/src/crypto/internal/backend/nobackend.go b/src/crypto/internal/backend/nobackend.go
 new file mode 100644
-index 00000000000000..08600a2c833ac7
+index 00000000000000..9204848708436e
 --- /dev/null
 +++ b/src/crypto/internal/backend/nobackend.go
-@@ -0,0 +1,193 @@
+@@ -0,0 +1,201 @@
 +// Copyright 2017 The Go Authors. All rights reserved.
 +// Use of this source code is governed by a BSD-style
 +// license that can be found in the LICENSE file.
@@ -706,8 +738,8 @@ index 00000000000000..08600a2c833ac7
 +
 +func NewHMAC(h func() hash.Hash, key []byte) hash.Hash { panic("cryptobackend: not available") }
 +
-+func NewAESCipher(key []byte) (cipher.Block, error) { panic("cryptobackend: not available") }
-+func NewGCMTLS(c cipher.Block) (cipher.AEAD, error) { panic("cryptobackend: not available") }
++func NewAESCipher(key []byte) (cipher.Block, error)   { panic("cryptobackend: not available") }
++func NewGCMTLS(c cipher.Block) (cipher.AEAD, error)   { panic("cryptobackend: not available") }
 +func NewGCMTLS13(c cipher.Block) (cipher.AEAD, error) { panic("cryptobackend: not available") }
 +
 +type PublicKeyECDSA struct{ _ int }
@@ -852,6 +884,14 @@ index 00000000000000..08600a2c833ac7
 +}
 +
 +func VerifyEd25519(pub *PublicKeyEd25519, message, sig []byte) error {
++	panic("cryptobackend: not available")
++}
++
++func SupportsDSA(l, n int) bool {
++	panic("cryptobackend: not available")
++}
++
++func GenerateDSAParameters(l, n int) (p, q, g BigInt, err error) {
 +	panic("cryptobackend: not available")
 +}
 diff --git a/src/crypto/internal/backend/norequirefips.go b/src/crypto/internal/backend/norequirefips.go

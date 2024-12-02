@@ -14,7 +14,7 @@ Subject: [PATCH] Add OpenSSL crypto backend
  src/crypto/ecdsa/notboring.go                 |   2 +-
  src/crypto/internal/backend/bbig/big.go       |   2 +-
  .../internal/backend/bbig/big_openssl.go      |  12 +
- src/crypto/internal/backend/openssl_linux.go  | 323 ++++++++++++++++++
+ src/crypto/internal/backend/openssl_linux.go  | 332 ++++++++++++++++++
  src/crypto/internal/boring/fipstls/stub.s     |   2 +-
  src/crypto/internal/boring/fipstls/tls.go     |   2 +-
  src/crypto/rsa/boring.go                      |   2 +-
@@ -40,7 +40,7 @@ Subject: [PATCH] Add OpenSSL crypto backend
  .../goexperiment/exp_opensslcrypto_on.go      |   9 +
  src/internal/goexperiment/flags.go            |   1 +
  src/os/exec/exec_test.go                      |   9 +
- 36 files changed, 408 insertions(+), 25 deletions(-)
+ 36 files changed, 417 insertions(+), 25 deletions(-)
  create mode 100644 src/crypto/internal/backend/bbig/big_openssl.go
  create mode 100644 src/crypto/internal/backend/openssl_linux.go
  create mode 100644 src/internal/goexperiment/exp_opensslcrypto_off.go
@@ -193,10 +193,10 @@ index 00000000000000..e6695dd66b1d02
 +var Dec = bbig.Dec
 diff --git a/src/crypto/internal/backend/openssl_linux.go b/src/crypto/internal/backend/openssl_linux.go
 new file mode 100644
-index 00000000000000..69af0ffe2fcf80
+index 00000000000000..7ff09906b8d07b
 --- /dev/null
 +++ b/src/crypto/internal/backend/openssl_linux.go
-@@ -0,0 +1,323 @@
+@@ -0,0 +1,332 @@
 +// Copyright 2017 The Go Authors. All rights reserved.
 +// Use of this source code is governed by a BSD-style
 +// license that can be found in the LICENSE file.
@@ -520,6 +520,15 @@ index 00000000000000..69af0ffe2fcf80
 +func VerifyEd25519(pub *PublicKeyEd25519, message, sig []byte) error {
 +	return openssl.VerifyEd25519(pub, message, sig)
 +}
++
++func SupportsDSA(l, n int) bool {
++	return openssl.SupportsDSA()
++}
++
++func GenerateDSAParameters(l, n int) (p, q, g openssl.BigInt, err error) {
++	params, err := openssl.GenerateDSAParameters(l, n)
++	return params.P, params.Q, params.G, err
++}
 diff --git a/src/crypto/internal/boring/fipstls/stub.s b/src/crypto/internal/boring/fipstls/stub.s
 index f2e5a503eaacb6..1dc7116efdff2e 100644
 --- a/src/crypto/internal/boring/fipstls/stub.s
@@ -586,10 +595,10 @@ index 34c22c8fbba7da..933ac569e034a8 100644
  package rsa
  
 diff --git a/src/crypto/rsa/rsa_test.go b/src/crypto/rsa/rsa_test.go
-index 86466e67e87eeb..dbcc1bec58bd46 100644
+index c6294694521c69..ab99b176ac9540 100644
 --- a/src/crypto/rsa/rsa_test.go
 +++ b/src/crypto/rsa/rsa_test.go
-@@ -690,6 +690,9 @@ func TestDecryptOAEP(t *testing.T) {
+@@ -700,6 +700,9 @@ func TestDecryptOAEP(t *testing.T) {
  }
  
  func Test2DecryptOAEP(t *testing.T) {
