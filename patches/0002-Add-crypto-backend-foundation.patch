@@ -3,6 +3,7 @@ From: qmuntal <qmuntaldiaz@microsoft.com>
 Date: Thu, 30 Jun 2022 10:03:03 +0200
 Subject: [PATCH] Add crypto backend foundation
 
+fix:nobackend panic consistently without return
 ---
  src/crypto/aes/cipher.go                     |   2 +-
  src/crypto/aes/cipher_asm.go                 |   2 +-
@@ -886,7 +887,7 @@ index 00000000000000..e5d7570d6d4363
 +const isRequireFIPS = true
 diff --git a/src/crypto/internal/backend/nobackend.go b/src/crypto/internal/backend/nobackend.go
 new file mode 100644
-index 00000000000000..be18ecce6eabaa
+index 00000000000000..c8d1742872c484
 --- /dev/null
 +++ b/src/crypto/internal/backend/nobackend.go
 @@ -0,0 +1,224 @@
@@ -1107,7 +1108,7 @@ index 00000000000000..be18ecce6eabaa
 +	panic("cryptobackend: not available")
 +}
 +
-+func SignDSA(priv *PrivateKeyDSA, hash []byte) (r, s BigInt, error) {
++func SignDSA(priv *PrivateKeyDSA, hash []byte) (r, s BigInt, err error) {
 +	panic("cryptobackend: not available")
 +}
 +
