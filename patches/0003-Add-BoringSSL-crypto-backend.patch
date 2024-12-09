@@ -5,8 +5,8 @@ Subject: [PATCH] Add BoringSSL crypto backend
 
 ---
  .../internal/backend/bbig/big_boring.go       |  12 +
- src/crypto/internal/backend/boring_linux.go   | 233 ++++++++++++++++++
- 2 files changed, 245 insertions(+)
+ src/crypto/internal/backend/boring_linux.go   | 256 ++++++++++++++++++
+ 2 files changed, 268 insertions(+)
  create mode 100644 src/crypto/internal/backend/bbig/big_boring.go
  create mode 100644 src/crypto/internal/backend/boring_linux.go
 
@@ -30,10 +30,10 @@ index 00000000000000..0b62cef68546d0
 +var Dec = bbig.Dec
 diff --git a/src/crypto/internal/backend/boring_linux.go b/src/crypto/internal/backend/boring_linux.go
 new file mode 100644
-index 00000000000000..6cecf976fa6a9b
+index 00000000000000..638164b1569a1e
 --- /dev/null
 +++ b/src/crypto/internal/backend/boring_linux.go
-@@ -0,0 +1,233 @@
+@@ -0,0 +1,256 @@
 +// Copyright 2017 The Go Authors. All rights reserved.
 +// Use of this source code is governed by a BSD-style
 +// license that can be found in the LICENSE file.
@@ -265,5 +265,28 @@ index 00000000000000..6cecf976fa6a9b
 +}
 +
 +func GenerateDSAParameters(l, n int) (p, q, g boring.BigInt, err error) {
++	panic("cryptobackend: not available")
++}
++
++type PrivateKeyDSA struct{}
++type PrivateKeyDSA struct{}
++
++func GenerateKeyDSA(p, q, g boring.BigInt) (*PrivateKeyDSA, error) {
++	panic("cryptobackend: not available")
++}
++
++func NewPrivateKeyDSA(p, q, g, x, y boring.BigInt) (*PrivateKeyDSA, error) {
++	panic("cryptobackend: not available")
++}
++
++func NewPublicKeyDSA(p, q, g, y boring.BigInt) (*PrivateKeyDSA, error) {
++	panic("cryptobackend: not available")
++}
++
++func SignDSA(priv *PrivateKeyDSA, hash []byte) (r, s boring.BigInt, err error) {
++	panic("cryptobackend: not available")
++}
++
++func VerifyDSA(pub *PublicKeyDSA, hashed []byte, r, s boring.BigInt) bool {
 +	panic("cryptobackend: not available")
 +}
