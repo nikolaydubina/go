@@ -14,7 +14,7 @@ Subject: [PATCH] Add OpenSSL crypto backend
  src/crypto/ecdsa/notboring.go                 |   2 +-
  src/crypto/internal/backend/bbig/big.go       |   2 +-
  .../internal/backend/bbig/big_openssl.go      |  12 +
- src/crypto/internal/backend/openssl_linux.go  | 418 ++++++++++++++++++
+ src/crypto/internal/backend/openssl_linux.go  | 419 ++++++++++++++++++
  src/crypto/internal/boring/fipstls/stub.s     |   2 +-
  src/crypto/internal/boring/fipstls/tls.go     |   2 +-
  src/crypto/rsa/boring.go                      |   2 +-
@@ -40,7 +40,7 @@ Subject: [PATCH] Add OpenSSL crypto backend
  .../goexperiment/exp_opensslcrypto_on.go      |   9 +
  src/internal/goexperiment/flags.go            |   1 +
  src/os/exec/exec_test.go                      |   9 +
- 36 files changed, 503 insertions(+), 25 deletions(-)
+ 36 files changed, 504 insertions(+), 25 deletions(-)
  create mode 100644 src/crypto/internal/backend/bbig/big_openssl.go
  create mode 100644 src/crypto/internal/backend/openssl_linux.go
  create mode 100644 src/internal/goexperiment/exp_opensslcrypto_off.go
@@ -193,10 +193,10 @@ index 00000000000000..e6695dd66b1d02
 +var Dec = bbig.Dec
 diff --git a/src/crypto/internal/backend/openssl_linux.go b/src/crypto/internal/backend/openssl_linux.go
 new file mode 100644
-index 00000000000000..9186ae56d702a1
+index 00000000000000..dbb7962d4370b7
 --- /dev/null
 +++ b/src/crypto/internal/backend/openssl_linux.go
-@@ -0,0 +1,418 @@
+@@ -0,0 +1,419 @@
 +// Copyright 2017 The Go Authors. All rights reserved.
 +// Use of this source code is governed by a BSD-style
 +// license that can be found in the LICENSE file.
@@ -219,6 +219,7 @@ index 00000000000000..9186ae56d702a1
 +	"syscall"
 +
 +	"github.com/golang-fips/openssl/v2"
++	"github.com/golang-fips/openssl/v2/bbig"
 +	"golang.org/x/crypto/cryptobyte"
 +	"golang.org/x/crypto/cryptobyte/asn1"
 +)
@@ -564,11 +565,11 @@ index 00000000000000..9186ae56d702a1
 +		return nil, nil, err
 +	}
 +
-+	return new(openssl.BigInt).SetBytes(rByte), new(openssl.BigInt).SetBytes(sByte), nil
++	return bbig.Enc(new(big.Int).SetBytes(rByte)), bbig.Enc(new(big.BigInt).SetBytes(sByte)), nil
 +}
 +
 +func VerifyDSA(pub *PublicKeyDSA, hashed []byte, r, s openssl.BigInt) bool {
-+	sig, err := encodeSignature(r.Bytes(), s.Bytes())
++	sig, err := encodeSignature(bbig.Dec(r).Bytes(), bbig.Dec(s).Bytes())
 +	if err != nil {
 +		return false
 +	}
