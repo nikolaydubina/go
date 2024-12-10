@@ -3,12 +3,15 @@ From: qmuntal <qmuntaldiaz@microsoft.com>
 Date: Thu, 30 Jun 2022 10:03:03 +0200
 Subject: [PATCH] Add crypto backend foundation
 
+fix:nobackend panic consistently without return
+
+002fix
 ---
  src/crypto/aes/cipher.go                     |   2 +-
  src/crypto/aes/cipher_asm.go                 |   2 +-
  src/crypto/boring/boring.go                  |   2 +-
  src/crypto/des/cipher.go                     |   7 +
- src/crypto/dsa/boring.go                     | 109 +++++++++
+ src/crypto/dsa/boring.go                     | 113 ++++++++++
  src/crypto/dsa/dsa.go                        |  44 ++++
  src/crypto/dsa/notboring.go                  |  16 ++
  src/crypto/ecdh/ecdh.go                      |   2 +-
@@ -63,7 +66,7 @@ Subject: [PATCH] Add crypto backend foundation
  src/hash/notboring_test.go                   |   5 +
  src/net/smtp/smtp_test.go                    |  72 +++---
  src/runtime/runtime_boring.go                |   5 +
- 59 files changed, 1093 insertions(+), 106 deletions(-)
+ 59 files changed, 1097 insertions(+), 106 deletions(-)
  create mode 100644 src/crypto/dsa/boring.go
  create mode 100644 src/crypto/dsa/notboring.go
  create mode 100644 src/crypto/ed25519/boring.go
@@ -151,10 +154,10 @@ index 04b73e7d3bf758..0891652a4566fb 100644
  	c.cipher1.generateSubkeys(key[:8])
 diff --git a/src/crypto/dsa/boring.go b/src/crypto/dsa/boring.go
 new file mode 100644
-index 00000000000000..d01c955da8c9e5
+index 00000000000000..3be888a0104809
 --- /dev/null
 +++ b/src/crypto/dsa/boring.go
-@@ -0,0 +1,109 @@
+@@ -0,0 +1,113 @@
 +// Copyright 2017 The Go Authors. All rights reserved.
 +// Use of this source code is governed by a BSD-style
 +// license that can be found in the LICENSE file.
@@ -248,7 +251,11 @@ index 00000000000000..d01c955da8c9e5
 +
 +func copyPublicKey(k *PublicKey) PublicKey {
 +	return PublicKey{
-+		Parameters{new(big.Int).Set(k.P), new(big.Int).Set(k.Q), new(big.Int).Set(k.G)},
++		Parameters: Parameters{
++			P: new(big.Int).Set(k.P),
++			Q: new(big.Int).Set(k.Q),
++			G: new(big.Int).Set(k.G),
++		},
 +		Y: new(big.Int).Set(k.Y),
 +	}
 +}
