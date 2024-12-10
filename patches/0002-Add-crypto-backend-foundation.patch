@@ -889,7 +889,7 @@ index 00000000000000..e5d7570d6d4363
 +const isRequireFIPS = true
 diff --git a/src/crypto/internal/backend/nobackend.go b/src/crypto/internal/backend/nobackend.go
 new file mode 100644
-index 00000000000000..af8cbf11c28f06
+index 00000000000000..2f6b54f20be6bf
 --- /dev/null
 +++ b/src/crypto/internal/backend/nobackend.go
 @@ -0,0 +1,224 @@
@@ -1106,7 +1106,7 @@ index 00000000000000..af8cbf11c28f06
 +	panic("cryptobackend: not available")
 +}
 +
-+func NewPublicKeyDSA(p, q, g, y BigInt) (*PrivateKeyDSA, error) {
++func NewPublicKeyDSA(p, q, g, y BigInt) (*PublicKeyDSA, error) {
 +	panic("cryptobackend: not available")
 +}
 +
