@@ -193,7 +193,7 @@ index 00000000000000..e6695dd66b1d02
 +var Dec = bbig.Dec
 diff --git a/src/crypto/internal/backend/openssl_linux.go b/src/crypto/internal/backend/openssl_linux.go
 new file mode 100644
-index 00000000000000..736c0a5df7e80a
+index 00000000000000..3c3991993ee40a
 --- /dev/null
 +++ b/src/crypto/internal/backend/openssl_linux.go
 @@ -0,0 +1,420 @@
@@ -566,7 +566,7 @@ index 00000000000000..736c0a5df7e80a
 +		return nil, nil, err
 +	}
 +
-+	return bbig.Enc(new(big.Int).SetBytes(rByte)), bbig.Enc(new(big.BigInt).SetBytes(sByte)), nil
++	return bbig.Enc(new(big.Int).SetBytes(rByte)), bbig.Enc(new(big.Int).SetBytes(sByte)), nil
 +}
 +
 +func VerifyDSA(pub *PublicKeyDSA, hashed []byte, r, s openssl.BigInt) bool {
