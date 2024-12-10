@@ -193,7 +193,7 @@ index 00000000000000..e6695dd66b1d02
 +var Dec = bbig.Dec
 diff --git a/src/crypto/internal/backend/openssl_linux.go b/src/crypto/internal/backend/openssl_linux.go
 new file mode 100644
-index 00000000000000..f72aad4805a06b
+index 00000000000000..0b4964d971f4bc
 --- /dev/null
 +++ b/src/crypto/internal/backend/openssl_linux.go
 @@ -0,0 +1,419 @@
@@ -211,6 +211,7 @@ index 00000000000000..f72aad4805a06b
 +import (
 +	"crypto"
 +	"crypto/cipher"
++	"crypto/internal/backend/bbig"
 +	"crypto/internal/boring/fipstls"
 +	"crypto/internal/boring/sig"
 +	"errors"
@@ -219,7 +220,6 @@ index 00000000000000..f72aad4805a06b
 +	"syscall"
 +
 +	"github.com/golang-fips/openssl/v2"
-+	"github.com/golang-fips/openssl/v2/bbig"
 +	"golang.org/x/crypto/cryptobyte"
 +	"golang.org/x/crypto/cryptobyte/asn1"
 +)
