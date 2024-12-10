@@ -14,7 +14,7 @@ Subject: [PATCH] Add OpenSSL crypto backend
  src/crypto/ecdsa/notboring.go                 |   2 +-
  src/crypto/internal/backend/bbig/big.go       |   2 +-
  .../internal/backend/bbig/big_openssl.go      |  12 +
- src/crypto/internal/backend/openssl_linux.go  | 387 ++++++++++++++++++
+ src/crypto/internal/backend/openssl_linux.go  | 389 ++++++++++++++++++
  src/crypto/internal/boring/fipstls/stub.s     |   2 +-
  src/crypto/internal/boring/fipstls/tls.go     |   2 +-
  src/crypto/rsa/boring.go                      |   2 +-
@@ -40,7 +40,7 @@ Subject: [PATCH] Add OpenSSL crypto backend
  .../goexperiment/exp_opensslcrypto_on.go      |   9 +
  src/internal/goexperiment/flags.go            |   1 +
  src/os/exec/exec_test.go                      |   9 +
- 36 files changed, 472 insertions(+), 25 deletions(-)
+ 36 files changed, 474 insertions(+), 25 deletions(-)
  create mode 100644 src/crypto/internal/backend/bbig/big_openssl.go
  create mode 100644 src/crypto/internal/backend/openssl_linux.go
  create mode 100644 src/internal/goexperiment/exp_opensslcrypto_off.go
@@ -193,10 +193,10 @@ index 00000000000000..e6695dd66b1d02
 +var Dec = bbig.Dec
 diff --git a/src/crypto/internal/backend/openssl_linux.go b/src/crypto/internal/backend/openssl_linux.go
 new file mode 100644
-index 00000000000000..4166b9a237cab3
+index 00000000000000..296665f9f8a896
 --- /dev/null
 +++ b/src/crypto/internal/backend/openssl_linux.go
-@@ -0,0 +1,387 @@
+@@ -0,0 +1,389 @@
 +// Copyright 2017 The Go Authors. All rights reserved.
 +// Use of this source code is governed by a BSD-style
 +// license that can be found in the LICENSE file.
@@ -219,7 +219,6 @@ index 00000000000000..4166b9a237cab3
 +	"syscall"
 +
 +	"github.com/golang-fips/openssl/v2"
-+	"github.com/microsoft/go-crypto-winnative/cng"
 +)
 +
 +// Enabled controls whether FIPS crypto is enabled.
@@ -523,6 +522,9 @@ index 00000000000000..4166b9a237cab3
 +	return openssl.VerifyEd25519(pub, message, sig)
 +}
 +
++type PublicKeyDSA = openssl.PublicKeyDSA
++type PrivateKeyDSA = openssl.PrivateKeyDSA
++
 +func SupportsDSA(l, n int) bool {
 +	return openssl.SupportsDSA()
 +}
@@ -533,7 +535,7 @@ index 00000000000000..4166b9a237cab3
 +}
 +
 +func GenerateKeyDSA(p, q, g openssl.BigInt) (x, y openssl.BigInt, err error) {
-+	generatedKey, err := openssl.GenerateKeyDSA(cng.DSAParameters{p, q, g})
++	generatedKey, err := openssl.GenerateKeyDSA(openssl.DSAParameters{p, q, g})
 +	if err != nil {
 +		return nil, nil, err
 +	}
@@ -545,14 +547,14 @@ index 00000000000000..4166b9a237cab3
 +	return openssl.NewPrivateKeyDSA(openssl.DSAParameters{p, q, g}, x, y)
 +}
 +
-+func NewPublicKeyDSA(p, q, g, y openssl.BigInt) (*openssl.PrivateKeyDSA, error) {
++func NewPublicKeyDSA(p, q, g, y openssl.BigInt) (*openssl.PublicKeyDSA, error) {
 +	return openssl.NewPublicKeyDSA(openssl.DSAParameters{p, q, g}, y)
 +}
 +
 +func SignDSA(priv *PrivateKeyDSA, hash []byte) (r, s openssl.BigInt, err error) {
 +	sig, err := openssl.SignDSA(priv, hash)
 +	if err != nil {
-+		return nil, err
++		return nil, nil, err
 +	}
 +
 +	// BCRYPTSignHash generates DSA signatures in P1363 format,
