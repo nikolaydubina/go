@@ -14,7 +14,7 @@ Subject: [PATCH] Add OpenSSL crypto backend
  src/crypto/ecdsa/notboring.go                 |   2 +-
  src/crypto/internal/backend/bbig/big.go       |   2 +-
  .../internal/backend/bbig/big_openssl.go      |  12 +
- src/crypto/internal/backend/openssl_linux.go  | 397 ++++++++++++++++++
+ src/crypto/internal/backend/openssl_linux.go  | 419 ++++++++++++++++++
  src/crypto/internal/boring/fipstls/stub.s     |   2 +-
  src/crypto/internal/boring/fipstls/tls.go     |   2 +-
  src/crypto/rsa/boring.go                      |   2 +-
@@ -40,7 +40,7 @@ Subject: [PATCH] Add OpenSSL crypto backend
  .../goexperiment/exp_opensslcrypto_on.go      |   9 +
  src/internal/goexperiment/flags.go            |   1 +
  src/os/exec/exec_test.go                      |   9 +
- 36 files changed, 482 insertions(+), 25 deletions(-)
+ 36 files changed, 504 insertions(+), 25 deletions(-)
  create mode 100644 src/crypto/internal/backend/bbig/big_openssl.go
  create mode 100644 src/crypto/internal/backend/openssl_linux.go
  create mode 100644 src/internal/goexperiment/exp_opensslcrypto_off.go
@@ -193,10 +193,10 @@ index 00000000000000..e6695dd66b1d02
 +var Dec = bbig.Dec
 diff --git a/src/crypto/internal/backend/openssl_linux.go b/src/crypto/internal/backend/openssl_linux.go
 new file mode 100644
-index 00000000000000..613a23b89dcd69
+index 00000000000000..f72aad4805a06b
 --- /dev/null
 +++ b/src/crypto/internal/backend/openssl_linux.go
-@@ -0,0 +1,397 @@
+@@ -0,0 +1,419 @@
 +// Copyright 2017 The Go Authors. All rights reserved.
 +// Use of this source code is governed by a BSD-style
 +// license that can be found in the LICENSE file.
@@ -560,16 +560,20 @@ index 00000000000000..613a23b89dcd69
 +		return nil, nil, err
 +	}
 +
-+	r, s, err := parseSignature(sig)
++	rByte, sByte, err := parseSignature(sig)
 +	if err != nil {
 +		return nil, nil, err
 +	}
 +
-+	return bbig.Dec(r), bbig.Dec(s), nil
++	return bbig.Dec(rByte), bbig.Dec(sByte), nil
 +}
 +
 +func VerifyDSA(pub *PublicKeyDSA, hashed []byte, r, s openssl.BigInt) bool {
-+	sig := encodeSignature(bbig.Enc(r), bbig.Enc(s))
++	sig, err := encodeSignature(bbig.Enc(r), bbig.Enc(s))
++	if err != nil {
++		return false
++	}
++
 +	return openssl.VerifyDSA(pub, hashed, sig)
 +}
 +
@@ -593,6 +597,24 @@ index 00000000000000..613a23b89dcd69
 +		addASN1IntBytes(b, s)
 +	})
 +	return b.Bytes()
++}
++
++// addASN1IntBytes encodes in ASN.1 a positive integer represented as
++// a big-endian byte slice with zero or more leading zeroes.
++func addASN1IntBytes(b *cryptobyte.Builder, bytes []byte) {
++	for len(bytes) > 0 && bytes[0] == 0 {
++		bytes = bytes[1:]
++	}
++	if len(bytes) == 0 {
++		b.SetError(errors.New("invalid integer"))
++		return
++	}
++	b.AddASN1(asn1.INTEGER, func(c *cryptobyte.Builder) {
++		if bytes[0]&0x80 != 0 {
++			c.AddUint8(0)
++		}
++		c.AddBytes(bytes)
++	})
 +}
 diff --git a/src/crypto/internal/boring/fipstls/stub.s b/src/crypto/internal/boring/fipstls/stub.s
 index f2e5a503eaacb6..1dc7116efdff2e 100644
