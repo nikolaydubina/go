@@ -183,7 +183,7 @@ index 00000000000000..92623031fd87d0
 +var Dec = bbig.Dec
 diff --git a/src/crypto/internal/backend/cng_windows.go b/src/crypto/internal/backend/cng_windows.go
 new file mode 100644
-index 00000000000000..e06646456aefe0
+index 00000000000000..2401bb177b900c
 --- /dev/null
 +++ b/src/crypto/internal/backend/cng_windows.go
 @@ -0,0 +1,318 @@
@@ -503,7 +503,7 @@ index 00000000000000..e06646456aefe0
 +}
 +
 +func VerifyDSA(pub *PublicKeyDSA, hashed []byte, r, s cng.BigInt) bool {
-+	return cng.VerifyDSA(pub, hash, sig)
++	return cng.VerifyDSA(pub, hashed, r, s)
 +}
 diff --git a/src/crypto/internal/backend/common.go b/src/crypto/internal/backend/common.go
 index bc595e91024f11..7766d674f5cfaf 100644

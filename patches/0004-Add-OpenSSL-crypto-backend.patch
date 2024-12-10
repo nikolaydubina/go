@@ -193,7 +193,7 @@ index 00000000000000..e6695dd66b1d02
 +var Dec = bbig.Dec
 diff --git a/src/crypto/internal/backend/openssl_linux.go b/src/crypto/internal/backend/openssl_linux.go
 new file mode 100644
-index 00000000000000..a264fa42af8198
+index 00000000000000..4166b9a237cab3
 --- /dev/null
 +++ b/src/crypto/internal/backend/openssl_linux.go
 @@ -0,0 +1,387 @@
@@ -582,7 +582,7 @@ index 00000000000000..a264fa42af8198
 +	prependZeros(len(s))
 +	sig = append(sig, s...)
 +
-+	return openssl.VerifyDSA(pub, hash, sig)
++	return openssl.VerifyDSA(pub, hashed, sig)
 +}
 diff --git a/src/crypto/internal/boring/fipstls/stub.s b/src/crypto/internal/boring/fipstls/stub.s
 index f2e5a503eaacb6..1dc7116efdff2e 100644
