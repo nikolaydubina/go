@@ -30,7 +30,7 @@ index 00000000000000..0b62cef68546d0
 +var Dec = bbig.Dec
 diff --git a/src/crypto/internal/backend/boring_linux.go b/src/crypto/internal/backend/boring_linux.go
 new file mode 100644
-index 00000000000000..638164b1569a1e
+index 00000000000000..d0d7c51212da6c
 --- /dev/null
 +++ b/src/crypto/internal/backend/boring_linux.go
 @@ -0,0 +1,256 @@
@@ -271,7 +271,7 @@ index 00000000000000..638164b1569a1e
 +type PrivateKeyDSA struct{}
 +type PrivateKeyDSA struct{}
 +
-+func GenerateKeyDSA(p, q, g boring.BigInt) (*PrivateKeyDSA, error) {
++func GenerateKeyDSA(p, q, g boring.BigInt) (x, y boring.BigInt, err error) {
 +	panic("cryptobackend: not available")
 +}
 +
