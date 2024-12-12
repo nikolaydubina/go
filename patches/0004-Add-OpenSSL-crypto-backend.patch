@@ -14,7 +14,7 @@ Subject: [PATCH] Add OpenSSL crypto backend
  src/crypto/ecdsa/notboring.go                 |   2 +-
  src/crypto/internal/backend/bbig/big.go       |   2 +-
  .../internal/backend/bbig/big_openssl.go      |  12 +
- src/crypto/internal/backend/openssl_linux.go  | 376 ++++++++++++++++++
+ src/crypto/internal/backend/openssl_linux.go  | 371 ++++++++++++++++++
  src/crypto/internal/boring/fipstls/stub.s     |   2 +-
  src/crypto/internal/boring/fipstls/tls.go     |   2 +-
  src/crypto/rsa/boring.go                      |   2 +-
@@ -40,7 +40,7 @@ Subject: [PATCH] Add OpenSSL crypto backend
  .../goexperiment/exp_opensslcrypto_on.go      |   9 +
  src/internal/goexperiment/flags.go            |   1 +
  src/os/exec/exec_test.go                      |   9 +
- 36 files changed, 461 insertions(+), 25 deletions(-)
+ 36 files changed, 456 insertions(+), 25 deletions(-)
  create mode 100644 src/crypto/internal/backend/bbig/big_openssl.go
  create mode 100644 src/crypto/internal/backend/openssl_linux.go
  create mode 100644 src/internal/goexperiment/exp_opensslcrypto_off.go
@@ -193,10 +193,10 @@ index 00000000000000..e6695dd66b1d02
 +var Dec = bbig.Dec
 diff --git a/src/crypto/internal/backend/openssl_linux.go b/src/crypto/internal/backend/openssl_linux.go
 new file mode 100644
-index 00000000000000..85856d3c900eb8
+index 00000000000000..57af729e1458f5
 --- /dev/null
 +++ b/src/crypto/internal/backend/openssl_linux.go
-@@ -0,0 +1,376 @@
+@@ -0,0 +1,371 @@
 +// Copyright 2017 The Go Authors. All rights reserved.
 +// Use of this source code is governed by a BSD-style
 +// license that can be found in the LICENSE file.
@@ -535,12 +535,7 @@ index 00000000000000..85856d3c900eb8
 +}
 +
 +func GenerateKeyDSA(p, q, g openssl.BigInt) (x, y openssl.BigInt, err error) {
-+	generatedKey, err := openssl.GenerateKeyDSA(openssl.DSAParameters{P: p, Q: q, G: g})
-+	if err != nil {
-+		return nil, nil, err
-+	}
-+
-+	return generatedKey.X, generatedKey.Y, nil
++	return openssl.GenerateKeyDSA(openssl.DSAParameters{P: p, Q: q, G: g})
 +}
 +
 +func NewPrivateKeyDSA(p, q, g, x, y openssl.BigInt) (*openssl.PrivateKeyDSA, error) {

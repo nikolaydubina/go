@@ -13,7 +13,7 @@ Subject: [PATCH] Add CNG crypto backend
  src/crypto/internal/backend/backend_test.go   |   4 +-
  src/crypto/internal/backend/bbig/big.go       |   2 +-
  src/crypto/internal/backend/bbig/big_cng.go   |  12 +
- src/crypto/internal/backend/cng_windows.go    | 322 ++++++++++++++++++
+ src/crypto/internal/backend/cng_windows.go    | 317 ++++++++++++++++++
  src/crypto/internal/backend/common.go         |  13 +-
  src/crypto/internal/boring/fipstls/stub.s     |   2 +-
  src/crypto/internal/boring/fipstls/tls.go     |   2 +-
@@ -40,7 +40,7 @@ Subject: [PATCH] Add CNG crypto backend
  .../goexperiment/exp_cngcrypto_off.go         |   9 +
  src/internal/goexperiment/exp_cngcrypto_on.go |   9 +
  src/internal/goexperiment/flags.go            |   1 +
- 36 files changed, 417 insertions(+), 27 deletions(-)
+ 36 files changed, 412 insertions(+), 27 deletions(-)
  create mode 100644 src/crypto/ecdsa/badlinkname.go
  create mode 100644 src/crypto/internal/backend/bbig/big_cng.go
  create mode 100644 src/crypto/internal/backend/cng_windows.go
@@ -183,10 +183,10 @@ index 00000000000000..92623031fd87d0
 +var Dec = bbig.Dec
 diff --git a/src/crypto/internal/backend/cng_windows.go b/src/crypto/internal/backend/cng_windows.go
 new file mode 100644
-index 00000000000000..e6feb6256e4a0d
+index 00000000000000..543b5ed1b5d15c
 --- /dev/null
 +++ b/src/crypto/internal/backend/cng_windows.go
-@@ -0,0 +1,322 @@
+@@ -0,0 +1,317 @@
 +// Copyright 2017 The Go Authors. All rights reserved.
 +// Use of this source code is governed by a BSD-style
 +// license that can be found in the LICENSE file.
@@ -486,12 +486,7 @@ index 00000000000000..e6feb6256e4a0d
 +}
 +
 +func GenerateKeyDSA(p, q, g cng.BigInt) (x, y cng.BigInt, err error) {
-+	generatedKey, err := cng.GenerateKeyDSA(cng.DSAParameters{P: p, Q: q, G: g})
-+	if err != nil {
-+		return nil, nil, err
-+	}
-+
-+	return generatedKey.X, generatedKey.Y, nil
++	return cng.GenerateKeyDSA(cng.DSAParameters{P: p, Q: q, G: g})
 +}
 +
 +func NewPrivateKeyDSA(p, q, g, x, y cng.BigInt) (*cng.PrivateKeyDSA, error) {
@@ -616,7 +611,7 @@ index 4aac87d7952081..010ee1467501c3 100644
  		if err != nil {
  			return err
 diff --git a/src/crypto/rsa/pss_test.go b/src/crypto/rsa/pss_test.go
-index 637d07e18cff2e..21435b86b52dad 100644
+index 2c82f50adf38b8..33630f14dcc8d4 100644
 --- a/src/crypto/rsa/pss_test.go
 +++ b/src/crypto/rsa/pss_test.go
 @@ -284,7 +284,7 @@ func fromHex(hexStr string) []byte {
