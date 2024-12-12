@@ -40,6 +40,7 @@ Subject: [PATCH] Add crypto backend foundation
  src/crypto/rsa/pkcs1v15.go                   |  10 +-
  src/crypto/rsa/pkcs1v15_test.go              |   5 +
  src/crypto/rsa/pss.go                        |   8 +-
+ src/crypto/rsa/pss_test.go                   |   3 +
  src/crypto/rsa/rsa.go                        |  21 +-
  src/crypto/rsa/rsa_test.go                   |  12 +-
  src/crypto/sha1/sha1.go                      |   2 +-
@@ -63,7 +64,7 @@ Subject: [PATCH] Add crypto backend foundation
  src/hash/notboring_test.go                   |   9 +
  src/net/smtp/smtp_test.go                    |  72 +++---
  src/runtime/runtime_boring.go                |   5 +
- 59 files changed, 1144 insertions(+), 106 deletions(-)
+ 60 files changed, 1148 insertions(+), 106 deletions(-)
  create mode 100644 src/crypto/dsa/boring.go
  create mode 100644 src/crypto/dsa/notboring.go
  create mode 100644 src/crypto/ed25519/boring.go
@@ -1507,6 +1508,20 @@ index 5716c464ca0a33..4aac87d7952081 100644
  		bkey, err := boringPublicKey(pub)
  		if err != nil {
  			return err
+diff --git a/src/crypto/rsa/pss_test.go b/src/crypto/rsa/pss_test.go
+index 637d07e18cff2e..2c82f50adf38b8 100644
+--- a/src/crypto/rsa/pss_test.go
++++ b/src/crypto/rsa/pss_test.go
+@@ -296,6 +296,9 @@ func TestInvalidPSSSaltLength(t *testing.T) {
+ 		SaltLength: -2,
+ 		Hash:       crypto.SHA256,
+ 	}); err.Error() != InvalidSaltLenErr.Error() {
++		// The OpenSSL and CNG backend returns the error required in Go tip.
++		// This change will conflict with the upstream sync PR, where we will be able to remove this.
++		t.Skip("TODO: unskip when upstream sync PR is merged")
+ 		t.Fatalf("SignPSS unexpected error: got %v, want %v", err, InvalidSaltLenErr)
+ 	}
+ 
 diff --git a/src/crypto/rsa/rsa.go b/src/crypto/rsa/rsa.go
 index 4d78d1eaaa6be0..a016c4f8362cf5 100644
 --- a/src/crypto/rsa/rsa.go
