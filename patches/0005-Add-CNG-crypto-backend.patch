@@ -183,7 +183,7 @@ index 00000000000000..92623031fd87d0
 +var Dec = bbig.Dec
 diff --git a/src/crypto/internal/backend/cng_windows.go b/src/crypto/internal/backend/cng_windows.go
 new file mode 100644
-index 00000000000000..bb2915ace01223
+index 00000000000000..e6feb6256e4a0d
 --- /dev/null
 +++ b/src/crypto/internal/backend/cng_windows.go
 @@ -0,0 +1,323 @@
@@ -487,7 +487,7 @@ index 00000000000000..bb2915ace01223
 +}
 +
 +func GenerateKeyDSA(p, q, g cng.BigInt) (x, y cng.BigInt, err error) {
-+	generatedKey, err := cng.GenerateKeyDSA(cng.DSAParameters{p, q, g})
++	generatedKey, err := cng.GenerateKeyDSA(cng.DSAParameters{P: p, Q: q, G: g})
 +	if err != nil {
 +		return nil, nil, err
 +	}
@@ -496,11 +496,11 @@ index 00000000000000..bb2915ace01223
 +}
 +
 +func NewPrivateKeyDSA(p, q, g, x, y cng.BigInt) (*cng.PrivateKeyDSA, error) {
-+	return cng.NewPrivateKeyDSA(cng.DSAParameters{p, q, g}, x, y)
++	return cng.NewPrivateKeyDSA(cng.DSAParameters{P: p, Q: q, G: g}, x, y)
 +}
 +
 +func NewPublicKeyDSA(p, q, g, y cng.BigInt) (*cng.PublicKeyDSA, error) {
-+	return cng.NewPublicKeyDSA(cng.DSAParameters{p, q, g}, y)
++	return cng.NewPublicKeyDSA(cng.DSAParameters{P: p, Q: q, G: g}, y)
 +}
 +
 +func SignDSA(priv *PrivateKeyDSA, hash []byte, parseSignature func([]byte) (cng.BigInt, cng.BigInt, error)) (r, s cng.BigInt, err error) {

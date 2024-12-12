@@ -193,7 +193,7 @@ index 00000000000000..e6695dd66b1d02
 +var Dec = bbig.Dec
 diff --git a/src/crypto/internal/backend/openssl_linux.go b/src/crypto/internal/backend/openssl_linux.go
 new file mode 100644
-index 00000000000000..fcffdbf1162816
+index 00000000000000..85856d3c900eb8
 --- /dev/null
 +++ b/src/crypto/internal/backend/openssl_linux.go
 @@ -0,0 +1,377 @@
@@ -536,7 +536,7 @@ index 00000000000000..fcffdbf1162816
 +}
 +
 +func GenerateKeyDSA(p, q, g openssl.BigInt) (x, y openssl.BigInt, err error) {
-+	generatedKey, err := openssl.GenerateKeyDSA(openssl.DSAParameters{p, q, g})
++	generatedKey, err := openssl.GenerateKeyDSA(openssl.DSAParameters{P: p, Q: q, G: g})
 +	if err != nil {
 +		return nil, nil, err
 +	}
@@ -545,11 +545,11 @@ index 00000000000000..fcffdbf1162816
 +}
 +
 +func NewPrivateKeyDSA(p, q, g, x, y openssl.BigInt) (*openssl.PrivateKeyDSA, error) {
-+	return openssl.NewPrivateKeyDSA(openssl.DSAParameters{p, q, g}, x, y)
++	return openssl.NewPrivateKeyDSA(openssl.DSAParameters{P: p, Q: q, G: g}, x, y)
 +}
 +
 +func NewPublicKeyDSA(p, q, g, y openssl.BigInt) (*openssl.PublicKeyDSA, error) {
-+	return openssl.NewPublicKeyDSA(openssl.DSAParameters{p, q, g}, y)
++	return openssl.NewPublicKeyDSA(openssl.DSAParameters{P: p, Q: q, G: g}, y)
 +}
 +
 +func SignDSA(priv *PrivateKeyDSA, hash []byte, parseSignature func([]byte) (openssl.BigInt, openssl.BigInt, error)) (r, s openssl.BigInt, err error) {
