@@ -13,7 +13,7 @@ Subject: [PATCH] Add CNG crypto backend
  src/crypto/internal/backend/backend_test.go   |   4 +-
  src/crypto/internal/backend/bbig/big.go       |   2 +-
  src/crypto/internal/backend/bbig/big_cng.go   |  12 +
- src/crypto/internal/backend/cng_windows.go    | 321 ++++++++++++++++++
+ src/crypto/internal/backend/cng_windows.go    | 323 ++++++++++++++++++
  src/crypto/internal/backend/common.go         |  13 +-
  src/crypto/internal/boring/fipstls/stub.s     |   2 +-
  src/crypto/internal/boring/fipstls/tls.go     |   2 +-
@@ -40,7 +40,7 @@ Subject: [PATCH] Add CNG crypto backend
  .../goexperiment/exp_cngcrypto_off.go         |   9 +
  src/internal/goexperiment/exp_cngcrypto_on.go |   9 +
  src/internal/goexperiment/flags.go            |   1 +
- 36 files changed, 416 insertions(+), 27 deletions(-)
+ 36 files changed, 418 insertions(+), 27 deletions(-)
  create mode 100644 src/crypto/ecdsa/badlinkname.go
  create mode 100644 src/crypto/internal/backend/bbig/big_cng.go
  create mode 100644 src/crypto/internal/backend/cng_windows.go
@@ -183,10 +183,10 @@ index 00000000000000..92623031fd87d0
 +var Dec = bbig.Dec
 diff --git a/src/crypto/internal/backend/cng_windows.go b/src/crypto/internal/backend/cng_windows.go
 new file mode 100644
-index 00000000000000..3543e4eff7402d
+index 00000000000000..bb2915ace01223
 --- /dev/null
 +++ b/src/crypto/internal/backend/cng_windows.go
-@@ -0,0 +1,321 @@
+@@ -0,0 +1,323 @@
 +// Copyright 2017 The Go Authors. All rights reserved.
 +// Use of this source code is governed by a BSD-style
 +// license that can be found in the LICENSE file.
@@ -212,6 +212,8 @@ index 00000000000000..3543e4eff7402d
 +
 +// Enabled controls whether FIPS crypto is enabled.
 +const Enabled = true
++
++type BigInt = cng.BigInt
 +
 +func init() {
 +	// 1: FIPS required: abort the process if the system is not in FIPS mode.
@@ -501,11 +503,11 @@ index 00000000000000..3543e4eff7402d
 +	return cng.NewPublicKeyDSA(cng.DSAParameters{p, q, g}, y)
 +}
 +
-+func SignDSA(priv *PrivateKeyDSA, hash []byte, parseSignature func([]byte) ([]uint, []uint, error)) (r, s cng.BigInt, err error) {
++func SignDSA(priv *PrivateKeyDSA, hash []byte, parseSignature func([]byte) (cng.BigInt, cng.BigInt, error)) (r, s cng.BigInt, err error) {
 +	return cng.SignDSA(priv, hash)
 +}
 +
-+func VerifyDSA(pub *PublicKeyDSA, hashed []byte, r, s cng.BigInt, encodeSignature func(r, s []uint) ([]byte, error)) bool {
++func VerifyDSA(pub *PublicKeyDSA, hashed []byte, r, s cng.BigInt, encodeSignature func(r, s cng.BigInt) ([]byte, error)) bool {
 +	return cng.VerifyDSA(pub, hashed, r, s)
 +}
 diff --git a/src/crypto/internal/backend/common.go b/src/crypto/internal/backend/common.go

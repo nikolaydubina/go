@@ -5,8 +5,8 @@ Subject: [PATCH] Add BoringSSL crypto backend
 
 ---
  .../internal/backend/bbig/big_boring.go       |  12 +
- src/crypto/internal/backend/boring_linux.go   | 256 ++++++++++++++++++
- 2 files changed, 268 insertions(+)
+ src/crypto/internal/backend/boring_linux.go   | 258 ++++++++++++++++++
+ 2 files changed, 270 insertions(+)
  create mode 100644 src/crypto/internal/backend/bbig/big_boring.go
  create mode 100644 src/crypto/internal/backend/boring_linux.go
 
@@ -30,10 +30,10 @@ index 00000000000000..0b62cef68546d0
 +var Dec = bbig.Dec
 diff --git a/src/crypto/internal/backend/boring_linux.go b/src/crypto/internal/backend/boring_linux.go
 new file mode 100644
-index 00000000000000..8cf833cf2bf3f9
+index 00000000000000..39757223de3425
 --- /dev/null
 +++ b/src/crypto/internal/backend/boring_linux.go
-@@ -0,0 +1,256 @@
+@@ -0,0 +1,258 @@
 +// Copyright 2017 The Go Authors. All rights reserved.
 +// Use of this source code is governed by a BSD-style
 +// license that can be found in the LICENSE file.
@@ -54,6 +54,8 @@ index 00000000000000..8cf833cf2bf3f9
 +)
 +
 +const Enabled = true
++
++type BigInt = boring.BigInt
 +
 +const RandReader = boring.RandReader
 +
@@ -283,7 +285,7 @@ index 00000000000000..8cf833cf2bf3f9
 +	panic("cryptobackend: not available")
 +}
 +
-+func SignDSA(priv *PrivateKeyDSA, hash []byte, parseSignature func([]byte) ([]uint, []uint, error)) (r, s boring.BigInt, err error) {
++func SignDSA(priv *PrivateKeyDSA, hash []byte, parseSignature func([]byte) (boring.BigInt, boring.BigInt, error)) (r, s boring.BigInt, err error) {
 +	panic("cryptobackend: not available")
 +}
 +
