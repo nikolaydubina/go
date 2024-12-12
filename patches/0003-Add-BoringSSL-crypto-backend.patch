@@ -30,7 +30,7 @@ index 00000000000000..0b62cef68546d0
 +var Dec = bbig.Dec
 diff --git a/src/crypto/internal/backend/boring_linux.go b/src/crypto/internal/backend/boring_linux.go
 new file mode 100644
-index 00000000000000..39757223de3425
+index 00000000000000..31e57a8dffd4c3
 --- /dev/null
 +++ b/src/crypto/internal/backend/boring_linux.go
 @@ -0,0 +1,258 @@
@@ -289,6 +289,6 @@ index 00000000000000..39757223de3425
 +	panic("cryptobackend: not available")
 +}
 +
-+func VerifyDSA(pub *PublicKeyDSA, hashed []byte, r, s boring.BigInt, encodeSignature func(r, s []uint) ([]byte, error)) bool {
++func VerifyDSA(pub *PublicKeyDSA, hashed []byte, r, s boring.BigInt, encodeSignature func(r, s boring.BigInt) ([]byte, error)) bool {
 +	panic("cryptobackend: not available")
 +}
