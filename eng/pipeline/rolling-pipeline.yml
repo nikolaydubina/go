@@ -42,7 +42,7 @@ extends:
       mariner2arm64:
         image: mcr.microsoft.com/microsoft-go/infra-images:cbl-mariner-2.0-arm64-default-20241029143304-6049f85
       azurelinux3:
-        image: mcr.microsoft.com/microsoft-go/infra-images:azurelinux-3.0-amd64-default-20241024144202-a3a1203
+        image: mcr.microsoft.com/microsoft-go/infra-images:azurelinux-3.0-amd64-default-20241210101540-a3a1203
 
     stages:
       - template: stages/go-builder-matrix-stages.yml
