@@ -14,7 +14,7 @@ Subject: [PATCH] Add OpenSSL crypto backend
  src/crypto/ecdsa/notboring.go                 |   2 +-
  src/crypto/internal/backend/bbig/big.go       |   2 +-
  .../internal/backend/bbig/big_openssl.go      |  12 +
- src/crypto/internal/backend/openssl_linux.go  | 332 ++++++++++++++++++
+ src/crypto/internal/backend/openssl_linux.go  | 377 ++++++++++++++++++
  src/crypto/internal/boring/fipstls/stub.s     |   2 +-
  src/crypto/internal/boring/fipstls/tls.go     |   2 +-
  src/crypto/rsa/boring.go                      |   2 +-
@@ -40,7 +40,7 @@ Subject: [PATCH] Add OpenSSL crypto backend
  .../goexperiment/exp_opensslcrypto_on.go      |   9 +
  src/internal/goexperiment/flags.go            |   1 +
  src/os/exec/exec_test.go                      |   9 +
- 36 files changed, 417 insertions(+), 25 deletions(-)
+ 36 files changed, 462 insertions(+), 25 deletions(-)
  create mode 100644 src/crypto/internal/backend/bbig/big_openssl.go
  create mode 100644 src/crypto/internal/backend/openssl_linux.go
  create mode 100644 src/internal/goexperiment/exp_opensslcrypto_off.go
@@ -193,10 +193,10 @@ index 00000000000000..e6695dd66b1d02
 +var Dec = bbig.Dec
 diff --git a/src/crypto/internal/backend/openssl_linux.go b/src/crypto/internal/backend/openssl_linux.go
 new file mode 100644
-index 00000000000000..7ff09906b8d07b
+index 00000000000000..85856d3c900eb8
 --- /dev/null
 +++ b/src/crypto/internal/backend/openssl_linux.go
-@@ -0,0 +1,332 @@
+@@ -0,0 +1,377 @@
 +// Copyright 2017 The Go Authors. All rights reserved.
 +// Use of this source code is governed by a BSD-style
 +// license that can be found in the LICENSE file.
@@ -222,6 +222,8 @@ index 00000000000000..7ff09906b8d07b
 +
 +// Enabled controls whether FIPS crypto is enabled.
 +const Enabled = true
++
++type BigInt = openssl.BigInt
 +
 +// knownVersions is a list of supported and well-known libcrypto.so suffixes in decreasing version order.
 +// FreeBSD library version numbering does not directly align to the version of OpenSSL.
@@ -521,6 +523,9 @@ index 00000000000000..7ff09906b8d07b
 +	return openssl.VerifyEd25519(pub, message, sig)
 +}
 +
++type PublicKeyDSA = openssl.PublicKeyDSA
++type PrivateKeyDSA = openssl.PrivateKeyDSA
++
 +func SupportsDSA(l, n int) bool {
 +	return openssl.SupportsDSA()
 +}
@@ -528,6 +533,46 @@ index 00000000000000..7ff09906b8d07b
 +func GenerateDSAParameters(l, n int) (p, q, g openssl.BigInt, err error) {
 +	params, err := openssl.GenerateDSAParameters(l, n)
 +	return params.P, params.Q, params.G, err
++}
++
++func GenerateKeyDSA(p, q, g openssl.BigInt) (x, y openssl.BigInt, err error) {
++	generatedKey, err := openssl.GenerateKeyDSA(openssl.DSAParameters{P: p, Q: q, G: g})
++	if err != nil {
++		return nil, nil, err
++	}
++
++	return generatedKey.X, generatedKey.Y, nil
++}
++
++func NewPrivateKeyDSA(p, q, g, x, y openssl.BigInt) (*openssl.PrivateKeyDSA, error) {
++	return openssl.NewPrivateKeyDSA(openssl.DSAParameters{P: p, Q: q, G: g}, x, y)
++}
++
++func NewPublicKeyDSA(p, q, g, y openssl.BigInt) (*openssl.PublicKeyDSA, error) {
++	return openssl.NewPublicKeyDSA(openssl.DSAParameters{P: p, Q: q, G: g}, y)
++}
++
++func SignDSA(priv *PrivateKeyDSA, hash []byte, parseSignature func([]byte) (openssl.BigInt, openssl.BigInt, error)) (r, s openssl.BigInt, err error) {
++	sig, err := openssl.SignDSA(priv, hash)
++	if err != nil {
++		return nil, nil, err
++	}
++
++	r, s, err = parseSignature(sig)
++	if err != nil {
++		return nil, nil, err
++	}
++
++	return openssl.BigInt(r), openssl.BigInt(s), nil
++}
++
++func VerifyDSA(pub *PublicKeyDSA, hashed []byte, r, s openssl.BigInt, encodeSignature func(r, s openssl.BigInt) ([]byte, error)) bool {
++	sig, err := encodeSignature(r, s)
++	if err != nil {
++		return false
++	}
++
++	return openssl.VerifyDSA(pub, hashed, sig)
 +}
 diff --git a/src/crypto/internal/boring/fipstls/stub.s b/src/crypto/internal/boring/fipstls/stub.s
 index f2e5a503eaacb6..1dc7116efdff2e 100644
