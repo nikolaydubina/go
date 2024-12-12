@@ -14,7 +14,7 @@ Subject: [PATCH] Add OpenSSL crypto backend
  src/crypto/ecdsa/notboring.go                 |   2 +-
  src/crypto/internal/backend/bbig/big.go       |   2 +-
  .../internal/backend/bbig/big_openssl.go      |  12 +
- src/crypto/internal/backend/openssl_linux.go  | 420 ++++++++++++++++++
+ src/crypto/internal/backend/openssl_linux.go  | 375 ++++++++++++++++++
  src/crypto/internal/boring/fipstls/stub.s     |   2 +-
  src/crypto/internal/boring/fipstls/tls.go     |   2 +-
  src/crypto/rsa/boring.go                      |   2 +-
@@ -32,7 +32,7 @@ Subject: [PATCH] Add OpenSSL crypto backend
  src/crypto/x509/notboring.go                  |   2 +-
  src/go.mod                                    |   1 +
  src/go.sum                                    |   2 +
- src/go/build/deps_test.go                     |   8 +-
+ src/go/build/deps_test.go                     |   7 +-
  src/go/build/vendor_test.go                   |   1 +
  src/hash/boring_test.go                       |   2 +-
  src/hash/notboring_test.go                    |   2 +-
@@ -40,7 +40,7 @@ Subject: [PATCH] Add OpenSSL crypto backend
  .../goexperiment/exp_opensslcrypto_on.go      |   9 +
  src/internal/goexperiment/flags.go            |   1 +
  src/os/exec/exec_test.go                      |   9 +
- 36 files changed, 506 insertions(+), 25 deletions(-)
+ 36 files changed, 460 insertions(+), 25 deletions(-)
  create mode 100644 src/crypto/internal/backend/bbig/big_openssl.go
  create mode 100644 src/crypto/internal/backend/openssl_linux.go
  create mode 100644 src/internal/goexperiment/exp_opensslcrypto_off.go
@@ -193,10 +193,10 @@ index 00000000000000..e6695dd66b1d02
 +var Dec = bbig.Dec
 diff --git a/src/crypto/internal/backend/openssl_linux.go b/src/crypto/internal/backend/openssl_linux.go
 new file mode 100644
-index 00000000000000..017baddcf79c06
+index 00000000000000..939dc54a0e8014
 --- /dev/null
 +++ b/src/crypto/internal/backend/openssl_linux.go
-@@ -0,0 +1,420 @@
+@@ -0,0 +1,375 @@
 +// Copyright 2017 The Go Authors. All rights reserved.
 +// Use of this source code is governed by a BSD-style
 +// license that can be found in the LICENSE file.
@@ -211,18 +211,13 @@ index 00000000000000..017baddcf79c06
 +import (
 +	"crypto"
 +	"crypto/cipher"
-+	"crypto/internal/backend/bbig"
 +	"crypto/internal/boring/fipstls"
 +	"crypto/internal/boring/sig"
-+	"errors"
 +	"hash"
 +	"io"
-+	"math/big"
 +	"syscall"
 +
 +	"github.com/golang-fips/openssl/v2"
-+	"golang.org/x/crypto/cryptobyte"
-+	"golang.org/x/crypto/cryptobyte/asn1"
 +)
 +
 +// Enabled controls whether FIPS crypto is enabled.
@@ -555,67 +550,27 @@ index 00000000000000..017baddcf79c06
 +	return openssl.NewPublicKeyDSA(openssl.DSAParameters{p, q, g}, y)
 +}
 +
-+func SignDSA(priv *PrivateKeyDSA, hash []byte) (r, s openssl.BigInt, err error) {
++func SignDSA(priv *PrivateKeyDSA, hash []byte, parseSignature func([]byte) ([]uint, []uint, error)) (r, s openssl.BigInt, err error) {
 +	sig, err := openssl.SignDSA(priv, hash)
 +	if err != nil {
 +		return nil, nil, err
 +	}
 +
-+	rByte, sByte, err := parseSignature(sig)
++	r, s, err := parseSignature(sig)
 +	if err != nil {
 +		return nil, nil, err
 +	}
 +
-+	return bbig.Enc(new(big.Int).SetBytes(rByte)), bbig.Enc(new(big.Int).SetBytes(sByte)), nil
++	return openssl.BigInt(r), openssl.BigInt(s), nil
 +}
 +
-+func VerifyDSA(pub *PublicKeyDSA, hashed []byte, r, s openssl.BigInt) bool {
-+	sig, err := encodeSignature(bbig.Dec(r).Bytes(), bbig.Dec(s).Bytes())
++func VerifyDSA(pub *PublicKeyDSA, hashed []byte, r, s openssl.BigInt, encodeSignature func(r, s []uint) ([]byte, error)) bool {
++	sig, err := encodeSignature(r, s)
 +	if err != nil {
 +		return false
 +	}
 +
 +	return openssl.VerifyDSA(pub, hashed, sig)
-+}
-+
-+func parseSignature(sig []byte) (r, s []byte, err error) {
-+	var inner cryptobyte.String
-+	input := cryptobyte.String(sig)
-+	if !input.ReadASN1(&inner, asn1.SEQUENCE) ||
-+		!input.Empty() ||
-+		!inner.ReadASN1Integer(&r) ||
-+		!inner.ReadASN1Integer(&s) ||
-+		!inner.Empty() {
-+		return nil, nil, errors.New("invalid ASN.1")
-+	}
-+	return r, s, nil
-+}
-+
-+func encodeSignature(r, s []byte) ([]byte, error) {
-+	var b cryptobyte.Builder
-+	b.AddASN1(asn1.SEQUENCE, func(b *cryptobyte.Builder) {
-+		addASN1IntBytes(b, r)
-+		addASN1IntBytes(b, s)
-+	})
-+	return b.Bytes()
-+}
-+
-+// addASN1IntBytes encodes in ASN.1 a positive integer represented as
-+// a big-endian byte slice with zero or more leading zeroes.
-+func addASN1IntBytes(b *cryptobyte.Builder, bytes []byte) {
-+	for len(bytes) > 0 && bytes[0] == 0 {
-+		bytes = bytes[1:]
-+	}
-+	if len(bytes) == 0 {
-+		b.SetError(errors.New("invalid integer"))
-+		return
-+	}
-+	b.AddASN1(asn1.INTEGER, func(c *cryptobyte.Builder) {
-+		if bytes[0]&0x80 != 0 {
-+			c.AddUint8(0)
-+		}
-+		c.AddBytes(bytes)
-+	})
 +}
 diff --git a/src/crypto/internal/boring/fipstls/stub.s b/src/crypto/internal/boring/fipstls/stub.s
 index f2e5a503eaacb6..1dc7116efdff2e 100644
@@ -835,7 +790,7 @@ index b4efd6d3c50c11..4c3ca847c21cd2 100644
  golang.org/x/crypto v0.25.1-0.20240722173533-bb80217080b0/go.mod h1:T+wALwcMOSE0kXgUAnPAHqTLW+XHgcELELW8VaDgm/M=
  golang.org/x/net v0.27.1-0.20240722181819-765c7e89b3bd h1:pHzwejE8Zkb94bG4nA+fUeskKPFp1HPldrhv62dabro=
 diff --git a/src/go/build/deps_test.go b/src/go/build/deps_test.go
-index 578b4d6f68504c..0a69b3e3167ee4 100644
+index 578b4d6f68504c..80a14d54739524 100644
 --- a/src/go/build/deps_test.go
 +++ b/src/go/build/deps_test.go
 @@ -476,6 +476,8 @@ var depsRules = `
@@ -855,15 +810,7 @@ index 578b4d6f68504c..0a69b3e3167ee4 100644
  	< crypto/internal/boring/bbig
  	< crypto/internal/backend/bbig
  	< crypto/rand
-@@ -522,6 +525,7 @@ var depsRules = `
- 	< encoding/asn1
- 	< golang.org/x/crypto/cryptobyte/asn1
- 	< golang.org/x/crypto/cryptobyte
-+	< crypto/internal/backend
- 	< crypto/internal/bigmod
- 	< crypto/dsa, crypto/elliptic, crypto/rsa
- 	< crypto/ecdsa
-@@ -812,7 +816,7 @@ var buildIgnore = []byte("\n//go:build ignore")
+@@ -812,7 +815,7 @@ var buildIgnore = []byte("\n//go:build ignore")
  
  func findImports(pkg string) ([]string, error) {
  	vpkg := pkg
@@ -872,7 +819,7 @@ index 578b4d6f68504c..0a69b3e3167ee4 100644
  		vpkg = "vendor/" + pkg
  	}
  	dir := filepath.Join(Default.GOROOT, "src", vpkg)
-@@ -822,7 +826,7 @@ func findImports(pkg string) ([]string, error) {
+@@ -822,7 +825,7 @@ func findImports(pkg string) ([]string, error) {
  	}
  	var imports []string
  	var haveImport = map[string]bool{}

@@ -9,7 +9,7 @@ Subject: [PATCH] Add crypto backend foundation
  src/crypto/boring/boring.go                  |   2 +-
  src/crypto/des/cipher.go                     |   7 +
  src/crypto/dsa/boring.go                     | 113 ++++++++++
- src/crypto/dsa/dsa.go                        |  44 ++++
+ src/crypto/dsa/dsa.go                        |  88 ++++++++
  src/crypto/dsa/notboring.go                  |  16 ++
  src/crypto/ecdh/ecdh.go                      |   2 +-
  src/crypto/ecdh/nist.go                      |   2 +-
@@ -63,7 +63,7 @@ Subject: [PATCH] Add crypto backend foundation
  src/hash/notboring_test.go                   |   5 +
  src/net/smtp/smtp_test.go                    |  72 +++---
  src/runtime/runtime_boring.go                |   5 +
- 59 files changed, 1097 insertions(+), 106 deletions(-)
+ 59 files changed, 1141 insertions(+), 106 deletions(-)
  create mode 100644 src/crypto/dsa/boring.go
  create mode 100644 src/crypto/dsa/notboring.go
  create mode 100644 src/crypto/ed25519/boring.go
@@ -269,19 +269,23 @@ index 00000000000000..3be888a0104809
 +	}
 +}
 diff --git a/src/crypto/dsa/dsa.go b/src/crypto/dsa/dsa.go
-index 4524bd492feba0..aa7970053f1a5d 100644
+index 4524bd492feba0..9161e4b0a6ce85 100644
 --- a/src/crypto/dsa/dsa.go
 +++ b/src/crypto/dsa/dsa.go
-@@ -18,6 +18,8 @@ import (
+@@ -18,7 +18,12 @@ import (
  	"io"
  	"math/big"
  
 +	boring "crypto/internal/backend"
 +	"crypto/internal/backend/bbig"
  	"crypto/internal/randutil"
++
++	"golang.org/x/crypto/cryptobyte"
++	"golang.org/x/crypto/cryptobyte/asn1"
  )
  
-@@ -86,6 +88,17 @@ func GenerateParameters(params *Parameters, rand io.Reader, sizes ParameterSizes
+ // Parameters represents the domain parameters for a key. These parameters can
+@@ -86,6 +91,17 @@ func GenerateParameters(params *Parameters, rand io.Reader, sizes ParameterSizes
  		return errors.New("crypto/dsa: invalid ParameterSizes")
  	}
  
@@ -299,7 +303,7 @@ index 4524bd492feba0..aa7970053f1a5d 100644
  	qBytes := make([]byte, N/8)
  	pBytes := make([]byte, L/8)
  
-@@ -161,6 +174,17 @@ func GenerateKey(priv *PrivateKey, rand io.Reader) error {
+@@ -161,6 +177,17 @@ func GenerateKey(priv *PrivateKey, rand io.Reader) error {
  		return errors.New("crypto/dsa: parameters not set up before generating key")
  	}
  
@@ -317,7 +321,7 @@ index 4524bd492feba0..aa7970053f1a5d 100644
  	x := new(big.Int)
  	xBytes := make([]byte, priv.Q.BitLen()/8)
  
-@@ -212,6 +236,18 @@ func Sign(rand io.Reader, priv *PrivateKey, hash []byte) (r, s *big.Int, err err
+@@ -212,6 +239,18 @@ func Sign(rand io.Reader, priv *PrivateKey, hash []byte) (r, s *big.Int, err err
  		err = ErrInvalidPublicKey
  		return
  	}
@@ -328,7 +332,7 @@ index 4524bd492feba0..aa7970053f1a5d 100644
 +			return nil, nil, err
 +		}
 +
-+		r, s, err := boring.SignDSA(b, hash)
++		r, s, err := boring.SignDSA(b, hash, parseSignature)
 +
 +		return bbig.Dec(r), bbig.Dec(s), err
 +	}
@@ -336,7 +340,7 @@ index 4524bd492feba0..aa7970053f1a5d 100644
  	n >>= 3
  
  	var attempts int
-@@ -271,6 +307,14 @@ func Sign(rand io.Reader, priv *PrivateKey, hash []byte) (r, s *big.Int, err err
+@@ -271,6 +310,14 @@ func Sign(rand io.Reader, priv *PrivateKey, hash []byte) (r, s *big.Int, err err
  // to the byte-length of the subgroup. This function does not perform that
  // truncation itself.
  func Verify(pub *PublicKey, hash []byte, r, s *big.Int) bool {
@@ -346,11 +350,56 @@ index 4524bd492feba0..aa7970053f1a5d 100644
 +			return false
 +		}
 +
-+		return boring.VerifyDSA(bkey, hash, bbig.Enc(r), bbig.Enc(s))
++		return boring.VerifyDSA(bkey, hash, bbig.Enc(r), bbig.Enc(s), encodeSignature)
 +	}
  	// FIPS 186-3, section 4.7
  
  	if pub.P.Sign() == 0 {
+@@ -307,3 +354,44 @@ func Verify(pub *PublicKey, hash []byte, r, s *big.Int) bool {
+ 
+ 	return v.Cmp(r) == 0
+ }
++
++func parseSignature(sig []byte) ([]uint, []uint, error) {
++	var r, s []byte
++	var inner cryptobyte.String
++	input := cryptobyte.String(sig)
++	if !input.ReadASN1(&inner, asn1.SEQUENCE) ||
++		!input.Empty() ||
++		!inner.ReadASN1Integer(&r) ||
++		!inner.ReadASN1Integer(&s) ||
++		!inner.Empty() {
++		return nil, nil, errors.New("invalid ASN.1")
++	}
++	return []uint(bbig.Enc(new(big.Int).SetBytes(r))), []uint(bbig.Enc(new(big.Int).SetBytes(s))), nil
++}
++
++func encodeSignature(r, s []uint) ([]byte, error) {
++	var b cryptobyte.Builder
++	b.AddASN1(asn1.SEQUENCE, func(b *cryptobyte.Builder) {
++		addASN1IntBytes(b, bbig.Dec(r).Bytes())
++		addASN1IntBytes(b, bbig.Dec(s).Bytes())
++	})
++	return b.Bytes()
++}
++
++// addASN1IntBytes encodes in ASN.1 a positive integer represented as
++// a big-endian byte slice with zero or more leading zeroes.
++func addASN1IntBytes(b *cryptobyte.Builder, bytes []byte) {
++	for len(bytes) > 0 && bytes[0] == 0 {
++		bytes = bytes[1:]
++	}
++	if len(bytes) == 0 {
++		b.SetError(errors.New("invalid integer"))
++		return
++	}
++	b.AddASN1(asn1.INTEGER, func(c *cryptobyte.Builder) {
++		if bytes[0]&0x80 != 0 {
++			c.AddUint8(0)
++		}
++		c.AddBytes(bytes)
++	})
++}
 diff --git a/src/crypto/dsa/notboring.go b/src/crypto/dsa/notboring.go
 new file mode 100644
 index 00000000000000..f8771d0189f990
@@ -886,7 +935,7 @@ index 00000000000000..e5d7570d6d4363
 +const isRequireFIPS = true
 diff --git a/src/crypto/internal/backend/nobackend.go b/src/crypto/internal/backend/nobackend.go
 new file mode 100644
-index 00000000000000..2f6b54f20be6bf
+index 00000000000000..826732e87d4764
 --- /dev/null
 +++ b/src/crypto/internal/backend/nobackend.go
 @@ -0,0 +1,224 @@
@@ -1107,11 +1156,11 @@ index 00000000000000..2f6b54f20be6bf
 +	panic("cryptobackend: not available")
 +}
 +
-+func SignDSA(priv *PrivateKeyDSA, hash []byte) (r, s BigInt, err error) {
++func SignDSA(priv *PrivateKeyDSA, hash []byte, parseSignature func([]byte) ([]uint, []uint, error)) (r, s BigInt, err error) {
 +	panic("cryptobackend: not available")
 +}
 +
-+func VerifyDSA(pub *PublicKeyDSA, hashed []byte, r, s BigInt) bool {
++func VerifyDSA(pub *PublicKeyDSA, hashed []byte, r, s BigInt, encodeSignature func(r, s []uint) ([]byte, error)) bool {
 +	panic("cryptobackend: not available")
 +}
 diff --git a/src/crypto/internal/backend/norequirefips.go b/src/crypto/internal/backend/norequirefips.go
