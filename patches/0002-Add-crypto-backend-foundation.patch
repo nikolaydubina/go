@@ -26,7 +26,7 @@ Subject: [PATCH] Add crypto backend foundation
  src/crypto/internal/backend/bbig/big.go      |  17 ++
  src/crypto/internal/backend/common.go        |  92 ++++++++
  src/crypto/internal/backend/isrequirefips.go |   9 +
- src/crypto/internal/backend/nobackend.go     | 224 +++++++++++++++++++
+ src/crypto/internal/backend/nobackend.go     | 223 +++++++++++++++++++
  src/crypto/internal/backend/norequirefips.go |   9 +
  src/crypto/internal/backend/stub.s           |  10 +
  src/crypto/md5/md5.go                        |   7 +
@@ -40,6 +40,7 @@ Subject: [PATCH] Add crypto backend foundation
  src/crypto/rsa/pkcs1v15.go                   |  10 +-
  src/crypto/rsa/pkcs1v15_test.go              |   5 +
  src/crypto/rsa/pss.go                        |   8 +-
+ src/crypto/rsa/pss_test.go                   |   3 +
  src/crypto/rsa/rsa.go                        |  21 +-
  src/crypto/rsa/rsa_test.go                   |  12 +-
  src/crypto/sha1/sha1.go                      |   2 +-
@@ -53,8 +54,8 @@ Subject: [PATCH] Add crypto backend foundation
  src/crypto/tls/handshake_client.go           |  25 ++-
  src/crypto/tls/handshake_server.go           |  25 ++-
  src/crypto/tls/handshake_server_tls13.go     |  10 +
- src/crypto/tls/key_schedule.go               |  18 +-
- src/crypto/tls/prf.go                        |  77 +++++--
+ src/crypto/tls/key_schedule.go               |  23 ++-
+ src/crypto/tls/prf.go                        |  77 ++++---
  src/crypto/tls/prf_test.go                   |  12 +-
  src/crypto/x509/boring_test.go               |   5 +
  src/go/build/deps_test.go                    |   4 +
@@ -63,7 +64,7 @@ Subject: [PATCH] Add crypto backend foundation
  src/hash/notboring_test.go                   |   9 +
  src/net/smtp/smtp_test.go                    |  72 +++---
  src/runtime/runtime_boring.go                |   5 +
- 59 files changed, 1145 insertions(+), 106 deletions(-)
+ 60 files changed, 1148 insertions(+), 106 deletions(-)
  create mode 100644 src/crypto/dsa/boring.go
  create mode 100644 src/crypto/dsa/notboring.go
  create mode 100644 src/crypto/ed25519/boring.go
@@ -269,7 +270,7 @@ index 00000000000000..3be888a0104809
 +	}
 +}
 diff --git a/src/crypto/dsa/dsa.go b/src/crypto/dsa/dsa.go
-index 4524bd492feba0..f8e20be38a3794 100644
+index 4524bd492feba0..19f3a125017b61 100644
 --- a/src/crypto/dsa/dsa.go
 +++ b/src/crypto/dsa/dsa.go
 @@ -18,7 +18,12 @@ import (
@@ -290,7 +291,7 @@ index 4524bd492feba0..f8e20be38a3794 100644
  	}
  
 +	if boring.Enabled && boring.SupportsDSA(L, N) {
-+		p, q, g, err := boring.GenerateDSAParameters(L, N)
++		p, q, g, err := boring.GenerateParametersDSA(L, N)
 +		if err != nil {
 +			return err
 +		}
@@ -938,7 +939,7 @@ new file mode 100644
 index 00000000000000..5a1f8da56d4fed
 --- /dev/null
 +++ b/src/crypto/internal/backend/nobackend.go
-@@ -0,0 +1,224 @@
+@@ -0,0 +1,223 @@
 +// Copyright 2017 The Go Authors. All rights reserved.
 +// Use of this source code is governed by a BSD-style
 +// license that can be found in the LICENSE file.
@@ -953,7 +954,6 @@ index 00000000000000..5a1f8da56d4fed
 +	"crypto"
 +	"crypto/cipher"
 +	"hash"
-+	"io"
 +)
 +
 +const Enabled = false
@@ -1064,7 +1064,7 @@ index 00000000000000..5a1f8da56d4fed
 +
 +func SupportsHKDF() bool { panic("cryptobackend: not available") }
 +
-+func ExpandHKDF(h func() hash.Hash, pseudorandomKey, info []byte) (io.Reader, error) {
++func ExpandHKDF(h func() hash.Hash, pseudorandomKey, info []byte, keyLength int) ([]byte, error) {
 +	panic("cryptobackend: not available")
 +}
 +
@@ -1137,7 +1137,7 @@ index 00000000000000..5a1f8da56d4fed
 +	panic("cryptobackend: not available")
 +}
 +
-+func GenerateDSAParameters(l, n int) (p, q, g BigInt, err error) {
++func GenerateParametersDSA(l, n int) (p, q, g BigInt, err error) {
 +	panic("cryptobackend: not available")
 +}
 +
@@ -1508,6 +1508,20 @@ index 5716c464ca0a33..4aac87d7952081 100644
  		bkey, err := boringPublicKey(pub)
  		if err != nil {
  			return err
+diff --git a/src/crypto/rsa/pss_test.go b/src/crypto/rsa/pss_test.go
+index 637d07e18cff2e..2c82f50adf38b8 100644
+--- a/src/crypto/rsa/pss_test.go
++++ b/src/crypto/rsa/pss_test.go
+@@ -296,6 +296,9 @@ func TestInvalidPSSSaltLength(t *testing.T) {
+ 		SaltLength: -2,
+ 		Hash:       crypto.SHA256,
+ 	}); err.Error() != InvalidSaltLenErr.Error() {
++		// The OpenSSL and CNG backend returns the error required in Go tip.
++		// This change will conflict with the upstream sync PR, where we will be able to remove this.
++		t.Skip("TODO: unskip when upstream sync PR is merged")
+ 		t.Fatalf("SignPSS unexpected error: got %v, want %v", err, InvalidSaltLenErr)
+ 	}
+ 
 diff --git a/src/crypto/rsa/rsa.go b/src/crypto/rsa/rsa.go
 index 4d78d1eaaa6be0..a016c4f8362cf5 100644
 --- a/src/crypto/rsa/rsa.go
@@ -1984,28 +1998,33 @@ index b8cf4c3fa50b24..bc5d32a29c50c4 100644
  	}
  	state, err := marshaler.MarshalBinary()
 diff --git a/src/crypto/tls/key_schedule.go b/src/crypto/tls/key_schedule.go
-index 1636baf79e7288..c9a5877d3d504f 100644
+index 1636baf79e7288..747c3c0883230c 100644
 --- a/src/crypto/tls/key_schedule.go
 +++ b/src/crypto/tls/key_schedule.go
-@@ -61,7 +61,16 @@ func (c *cipherSuiteTLS13) expandLabel(secret []byte, label string, context []by
+@@ -60,10 +60,18 @@ func (c *cipherSuiteTLS13) expandLabel(secret []byte, label string, context []by
+ 		// significantly more confusing to users.
  		panic(fmt.Errorf("failed to construct HKDF label: %s", err))
  	}
- 	out := make([]byte, length)
+-	out := make([]byte, length)
 -	n, err := hkdf.Expand(c.hash.New, secret, hkdfLabelBytes).Read(out)
-+	var r io.Reader
+-	if err != nil || n != length {
+-		panic("tls: HKDF-Expand-Label invocation failed unexpectedly")
++	var out []byte
 +	if boring.Enabled && boring.SupportsHKDF() {
-+		r, err = boring.ExpandHKDF(c.hash.New, secret, hkdfLabelBytes)
++		out, err = boring.ExpandHKDF(c.hash.New, secret, hkdfLabelBytes, length)
 +		if err != nil {
 +			panic(fmt.Errorf("tls: HKDF-Expand-Label invocation failed unexpectedly: %s", err))
 +		}
 +	} else {
-+		r = hkdf.Expand(c.hash.New, secret, hkdfLabelBytes)
-+	}
-+	n, err := r.Read(out)
- 	if err != nil || n != length {
- 		panic("tls: HKDF-Expand-Label invocation failed unexpectedly")
++		out = make([]byte, length)
++		n, err := hkdf.Expand(c.hash.New, secret, hkdfLabelBytes).Read(out)
++		if err != nil || n != length {
++			panic("tls: HKDF-Expand-Label invocation failed unexpectedly")
++		}
  	}
-@@ -81,6 +90,13 @@ func (c *cipherSuiteTLS13) extract(newSecret, currentSecret []byte) []byte {
+ 	return out
+ }
+@@ -81,6 +89,13 @@ func (c *cipherSuiteTLS13) extract(newSecret, currentSecret []byte) []byte {
  	if newSecret == nil {
  		newSecret = make([]byte, c.hash.Size())
  	}

@@ -15,21 +15,21 @@ To reproduce, run 'go mod vendor' in 'go/src'.
  .../golang-fips/openssl/v2/cgo_go124.go       |   18 +
  .../golang-fips/openssl/v2/cipher.go          |  569 +++++++++
  .../github.com/golang-fips/openssl/v2/des.go  |  114 ++
- .../github.com/golang-fips/openssl/v2/dsa.go  |  324 +++++
- .../github.com/golang-fips/openssl/v2/ec.go   |   51 +
- .../github.com/golang-fips/openssl/v2/ecdh.go |  313 +++++
- .../golang-fips/openssl/v2/ecdsa.go           |  211 ++++
- .../golang-fips/openssl/v2/ed25519.go         |  221 ++++
- .../github.com/golang-fips/openssl/v2/evp.go  |  519 ++++++++
- .../golang-fips/openssl/v2/goopenssl.c        |  240 ++++
- .../golang-fips/openssl/v2/goopenssl.h        |  259 ++++
+ .../github.com/golang-fips/openssl/v2/dsa.go  |  323 +++++
+ .../github.com/golang-fips/openssl/v2/ec.go   |   68 ++
+ .../github.com/golang-fips/openssl/v2/ecdh.go |  303 +++++
+ .../golang-fips/openssl/v2/ecdsa.go           |  208 ++++
+ .../golang-fips/openssl/v2/ed25519.go         |  218 ++++
+ .../github.com/golang-fips/openssl/v2/evp.go  |  569 +++++++++
+ .../golang-fips/openssl/v2/goopenssl.c        |  248 ++++
+ .../golang-fips/openssl/v2/goopenssl.h        |  262 +++++
  .../github.com/golang-fips/openssl/v2/hash.go | 1041 +++++++++++++++++
- .../github.com/golang-fips/openssl/v2/hkdf.go |  285 +++++
+ .../github.com/golang-fips/openssl/v2/hkdf.go |  322 +++++
  .../github.com/golang-fips/openssl/v2/hmac.go |  274 +++++
  .../github.com/golang-fips/openssl/v2/init.go |   64 +
  .../golang-fips/openssl/v2/init_unix.go       |   31 +
  .../golang-fips/openssl/v2/init_windows.go    |   36 +
- .../golang-fips/openssl/v2/openssl.go         |  462 ++++++++
+ .../golang-fips/openssl/v2/openssl.go         |  469 ++++++++
  .../golang-fips/openssl/v2/params.go          |  210 ++++
  .../golang-fips/openssl/v2/pbkdf2.go          |   62 +
  .../golang-fips/openssl/v2/port_dsa.c         |   85 ++
@@ -37,7 +37,7 @@ To reproduce, run 'go mod vendor' in 'go/src'.
  .../github.com/golang-fips/openssl/v2/rand.go |   20 +
  .../github.com/golang-fips/openssl/v2/rc4.go  |   66 ++
  .../github.com/golang-fips/openssl/v2/rsa.go  |  408 +++++++
- .../github.com/golang-fips/openssl/v2/shims.h |  401 +++++++
+ .../github.com/golang-fips/openssl/v2/shims.h |  416 +++++++
  .../golang-fips/openssl/v2/thread_setup.go    |   14 +
  .../golang-fips/openssl/v2/thread_setup.h     |    4 +
  .../openssl/v2/thread_setup_unix.c            |   64 +
@@ -51,24 +51,24 @@ To reproduce, run 'go mod vendor' in 'go/src'.
  .../go-crypto-winnative/cng/cipher.go         |   52 +
  .../microsoft/go-crypto-winnative/cng/cng.go  |  131 +++
  .../microsoft/go-crypto-winnative/cng/des.go  |  106 ++
- .../microsoft/go-crypto-winnative/cng/dsa.go  |  469 ++++++++
+ .../microsoft/go-crypto-winnative/cng/dsa.go  |  465 ++++++++
  .../microsoft/go-crypto-winnative/cng/ecdh.go |  255 ++++
  .../go-crypto-winnative/cng/ecdsa.go          |  169 +++
  .../microsoft/go-crypto-winnative/cng/hash.go |  306 +++++
- .../microsoft/go-crypto-winnative/cng/hkdf.go |  180 +++
+ .../microsoft/go-crypto-winnative/cng/hkdf.go |  124 ++
  .../microsoft/go-crypto-winnative/cng/hmac.go |   35 +
  .../microsoft/go-crypto-winnative/cng/keys.go |  220 ++++
  .../go-crypto-winnative/cng/pbkdf2.go         |   70 ++
  .../microsoft/go-crypto-winnative/cng/rand.go |   28 +
  .../microsoft/go-crypto-winnative/cng/rc4.go  |   65 +
- .../microsoft/go-crypto-winnative/cng/rsa.go  |  370 ++++++
+ .../microsoft/go-crypto-winnative/cng/rsa.go  |  396 +++++++
  .../go-crypto-winnative/cng/tls1prf.go        |   88 ++
  .../internal/bcrypt/bcrypt_windows.go         |  359 ++++++
  .../internal/bcrypt/zsyscall_windows.go       |  389 ++++++
  .../internal/subtle/aliasing.go               |   32 +
  .../internal/sysdll/sys_windows.go            |   55 +
  src/vendor/modules.txt                        |   11 +
- 63 files changed, 10958 insertions(+)
+ 63 files changed, 11044 insertions(+)
  create mode 100644 src/vendor/github.com/golang-fips/openssl/v2/.gitignore
  create mode 100644 src/vendor/github.com/golang-fips/openssl/v2/.gitleaks.toml
  create mode 100644 src/vendor/github.com/golang-fips/openssl/v2/LICENSE
@@ -1187,10 +1187,10 @@ index 00000000000000..cd006544b5111b
 +}
 diff --git a/src/vendor/github.com/golang-fips/openssl/v2/dsa.go b/src/vendor/github.com/golang-fips/openssl/v2/dsa.go
 new file mode 100644
-index 00000000000000..c56071f577f4f2
+index 00000000000000..384424c215dcf1
 --- /dev/null
 +++ b/src/vendor/github.com/golang-fips/openssl/v2/dsa.go
-@@ -0,0 +1,324 @@
+@@ -0,0 +1,323 @@
 +//go:build !cmd_go_bootstrap
 +
 +package openssl
@@ -1253,8 +1253,8 @@ index 00000000000000..c56071f577f4f2
 +	return f(k._pkey)
 +}
 +
-+// GenerateDSAParameters generates a set of DSA parameters.
-+func GenerateDSAParameters(l, n int) (DSAParameters, error) {
++// GenerateParametersDSA generates a set of DSA parameters.
++func GenerateParametersDSA(l, n int) (DSAParameters, error) {
 +	// The DSA parameters are generated by creating a new DSA key and
 +	// extracting the domain parameters from it.
 +
@@ -1340,35 +1340,34 @@ index 00000000000000..c56071f577f4f2
 +}
 +
 +// GenerateKeyDSA generates a new private DSA key using the given parameters.
-+func GenerateKeyDSA(params DSAParameters) (*PrivateKeyDSA, error) {
++func GenerateKeyDSA(params DSAParameters) (x, y BigInt, err error) {
 +	pkey, err := newDSA(params, nil, nil)
 +	if err != nil {
-+		return nil, err
++		return nil, nil, err
 +	}
-+	var x, y C.GO_BIGNUM_PTR
++	defer C.go_openssl_EVP_PKEY_free(pkey)
++	var bx, by C.GO_BIGNUM_PTR
 +	switch vMajor {
 +	case 1:
 +		dsa := getDSA(pkey)
 +		if vMinor == 0 {
-+			C.go_openssl_DSA_get0_key_backport(dsa, &y, &x)
++			C.go_openssl_DSA_get0_key_backport(dsa, &by, &bx)
 +		} else {
-+			C.go_openssl_DSA_get0_key(dsa, &y, &x)
++			C.go_openssl_DSA_get0_key(dsa, &by, &bx)
 +		}
 +	case 3:
 +		defer func() {
-+			C.go_openssl_BN_clear_free(x)
-+			C.go_openssl_BN_free(y)
++			C.go_openssl_BN_clear_free(bx)
++			C.go_openssl_BN_free(by)
 +		}()
-+		if C.go_openssl_EVP_PKEY_get_bn_param(pkey, _OSSL_PKEY_PARAM_PUB_KEY, &y) != 1 ||
-+			C.go_openssl_EVP_PKEY_get_bn_param(pkey, _OSSL_PKEY_PARAM_PRIV_KEY, &x) != 1 {
-+			return nil, newOpenSSLError("EVP_PKEY_get_bn_param")
++		if C.go_openssl_EVP_PKEY_get_bn_param(pkey, _OSSL_PKEY_PARAM_PUB_KEY, &by) != 1 ||
++			C.go_openssl_EVP_PKEY_get_bn_param(pkey, _OSSL_PKEY_PARAM_PRIV_KEY, &bx) != 1 {
++			return nil, nil, newOpenSSLError("EVP_PKEY_get_bn_param")
 +		}
 +	default:
 +		panic(errUnsupportedVersion())
 +	}
-+	k := &PrivateKeyDSA{params, bnToBig(x), bnToBig(y), pkey}
-+	runtime.SetFinalizer(k, (*PrivateKeyDSA).finalize)
-+	return k, nil
++	return bnToBig(bx), bnToBig(by), nil
 +}
 +
 +// SignDSA signs a hash (which should be the result of hashing a larger message).
@@ -1517,10 +1516,10 @@ index 00000000000000..c56071f577f4f2
 +}
 diff --git a/src/vendor/github.com/golang-fips/openssl/v2/ec.go b/src/vendor/github.com/golang-fips/openssl/v2/ec.go
 new file mode 100644
-index 00000000000000..03c51e5a74cf1a
+index 00000000000000..734c14b9bc1e3e
 --- /dev/null
 +++ b/src/vendor/github.com/golang-fips/openssl/v2/ec.go
-@@ -0,0 +1,51 @@
+@@ -0,0 +1,68 @@
 +//go:build !cmd_go_bootstrap
 +
 +package openssl
@@ -1528,18 +1527,35 @@ index 00000000000000..03c51e5a74cf1a
 +// #include "goopenssl.h"
 +import "C"
 +
-+func curveNID(curve string) (C.int, error) {
++func curveNID(curve string) C.int {
 +	switch curve {
 +	case "P-224":
-+		return C.GO_NID_secp224r1, nil
++		return C.GO_NID_secp224r1
 +	case "P-256":
-+		return C.GO_NID_X9_62_prime256v1, nil
++		return C.GO_NID_X9_62_prime256v1
 +	case "P-384":
-+		return C.GO_NID_secp384r1, nil
++		return C.GO_NID_secp384r1
 +	case "P-521":
-+		return C.GO_NID_secp521r1, nil
++		return C.GO_NID_secp521r1
++	default:
++		panic("openssl: unknown curve " + curve)
 +	}
-+	return 0, errUnknownCurve
++}
++
++// curveSize returns the size of the curve in bytes.
++func curveSize(curve string) int {
++	switch curve {
++	case "P-224":
++		return 224 / 8
++	case "P-256":
++		return 256 / 8
++	case "P-384":
++		return 384 / 8
++	case "P-521":
++		return (521 + 7) / 8
++	default:
++		panic("openssl: unknown curve " + curve)
++	}
 +}
 +
 +// encodeEcPoint encodes pt.
@@ -1574,10 +1590,10 @@ index 00000000000000..03c51e5a74cf1a
 +}
 diff --git a/src/vendor/github.com/golang-fips/openssl/v2/ecdh.go b/src/vendor/github.com/golang-fips/openssl/v2/ecdh.go
 new file mode 100644
-index 00000000000000..5b146749350bf5
+index 00000000000000..ad392dca1ced82
 --- /dev/null
 +++ b/src/vendor/github.com/golang-fips/openssl/v2/ecdh.go
-@@ -0,0 +1,313 @@
+@@ -0,0 +1,303 @@
 +//go:build !cmd_go_bootstrap
 +
 +package openssl
@@ -1587,6 +1603,7 @@ index 00000000000000..5b146749350bf5
 +import (
 +	"errors"
 +	"runtime"
++	"slices"
 +	"unsafe"
 +)
 +
@@ -1600,9 +1617,8 @@ index 00000000000000..5b146749350bf5
 +}
 +
 +type PrivateKeyECDH struct {
-+	_pkey        C.GO_EVP_PKEY_PTR
-+	curve        string
-+	hasPublicKey bool
++	_pkey C.GO_EVP_PKEY_PTR
++	curve string
 +}
 +
 +func (k *PrivateKeyECDH) finalize() {
@@ -1610,14 +1626,14 @@ index 00000000000000..5b146749350bf5
 +}
 +
 +func NewPublicKeyECDH(curve string, bytes []byte) (*PublicKeyECDH, error) {
-+	if len(bytes) < 1 {
-+		return nil, errors.New("NewPublicKeyECDH: missing key")
++	if len(bytes) != 1+2*curveSize(curve) {
++		return nil, errors.New("NewPublicKeyECDH: wrong key length")
 +	}
 +	pkey, err := newECDHPkey(curve, bytes, false)
 +	if err != nil {
 +		return nil, err
 +	}
-+	k := &PublicKeyECDH{pkey, append([]byte(nil), bytes...)}
++	k := &PublicKeyECDH{pkey, slices.Clone(bytes)}
 +	runtime.SetFinalizer(k, (*PublicKeyECDH).finalize)
 +	return k, nil
 +}
@@ -1625,24 +1641,20 @@ index 00000000000000..5b146749350bf5
 +func (k *PublicKeyECDH) Bytes() []byte { return k.bytes }
 +
 +func NewPrivateKeyECDH(curve string, bytes []byte) (*PrivateKeyECDH, error) {
++	if len(bytes) != curveSize(curve) {
++		return nil, errors.New("NewPrivateKeyECDH: wrong key length")
++	}
 +	pkey, err := newECDHPkey(curve, bytes, true)
 +	if err != nil {
 +		return nil, err
 +	}
-+	k := &PrivateKeyECDH{pkey, curve, false}
++	k := &PrivateKeyECDH{pkey, curve}
 +	runtime.SetFinalizer(k, (*PrivateKeyECDH).finalize)
 +	return k, nil
 +}
 +
 +func (k *PrivateKeyECDH) PublicKey() (*PublicKeyECDH, error) {
 +	defer runtime.KeepAlive(k)
-+	if !k.hasPublicKey {
-+		err := deriveEcdhPublicKey(k._pkey, k.curve)
-+		if err != nil {
-+			return nil, err
-+		}
-+		k.hasPublicKey = true
-+	}
 +	var pkey C.GO_EVP_PKEY_PTR
 +	defer func() {
 +		C.go_openssl_EVP_PKEY_free(pkey)
@@ -1692,10 +1704,7 @@ index 00000000000000..5b146749350bf5
 +}
 +
 +func newECDHPkey(curve string, bytes []byte, isPrivate bool) (C.GO_EVP_PKEY_PTR, error) {
-+	nid, err := curveNID(curve)
-+	if err != nil {
-+		return nil, err
-+	}
++	nid := curveNID(curve)
 +	switch vMajor {
 +	case 1:
 +		return newECDHPkey1(nid, bytes, isPrivate)
@@ -1718,6 +1727,7 @@ index 00000000000000..5b146749350bf5
 +			C.go_openssl_EC_KEY_free(key)
 +		}
 +	}()
++	group := C.go_openssl_EC_KEY_get0_group(key)
 +	if isPrivate {
 +		priv := C.go_openssl_BN_bin2bn(base(bytes), C.int(len(bytes)), nil)
 +		if priv == nil {
@@ -1727,8 +1737,15 @@ index 00000000000000..5b146749350bf5
 +		if C.go_openssl_EC_KEY_set_private_key(key, priv) != 1 {
 +			return nil, newOpenSSLError("EC_KEY_set_private_key")
 +		}
++		pub, err := pointMult(group, priv)
++		if err != nil {
++			return nil, err
++		}
++		defer C.go_openssl_EC_POINT_free(pub)
++		if C.go_openssl_EC_KEY_set_public_key(key, pub) != 1 {
++			return nil, newOpenSSLError("EC_KEY_set_public_key")
++		}
 +	} else {
-+		group := C.go_openssl_EC_KEY_get0_group(key)
 +		pub := C.go_openssl_EC_POINT_new(group)
 +		if pub == nil {
 +			return nil, newOpenSSLError("EC_POINT_new")
@@ -1739,6 +1756,14 @@ index 00000000000000..5b146749350bf5
 +		}
 +		if C.go_openssl_EC_KEY_set_public_key(key, pub) != 1 {
 +			return nil, newOpenSSLError("EC_KEY_set_public_key")
++		}
++	}
++	if C.go_openssl_EC_KEY_check_key(key) != 1 {
++		// Match upstream error message.
++		if isPrivate {
++			return nil, errors.New("crypto/ecdh: invalid private key")
++		} else {
++			return nil, errors.New("crypto/ecdh: invalid public key")
 +		}
 +	}
 +	return newEVPPKEY(key)
@@ -1755,7 +1780,19 @@ index 00000000000000..5b146749350bf5
 +	bld.addUTF8String(_OSSL_PKEY_PARAM_GROUP_NAME, C.go_openssl_OBJ_nid2sn(nid), 0)
 +	var selection C.int
 +	if isPrivate {
-+		bld.addBin(_OSSL_PKEY_PARAM_PRIV_KEY, bytes, true)
++		priv := C.go_openssl_BN_bin2bn(base(bytes), C.int(len(bytes)), nil)
++		if priv == nil {
++			return nil, newOpenSSLError("BN_bin2bn")
++		}
++		defer C.go_openssl_BN_clear_free(priv)
++		pubBytes, err := generateAndEncodeEcPublicKey(nid, func(group C.GO_EC_GROUP_PTR) (C.GO_EC_POINT_PTR, error) {
++			return pointMult(group, priv)
++		})
++		if err != nil {
++			return nil, err
++		}
++		bld.addOctetString(_OSSL_PKEY_PARAM_PUB_KEY, pubBytes)
++		bld.addBN(_OSSL_PKEY_PARAM_PRIV_KEY, priv)
 +		selection = C.GO_EVP_PKEY_KEYPAIR
 +	} else {
 +		bld.addOctetString(_OSSL_PKEY_PARAM_PUB_KEY, bytes)
@@ -1767,62 +1804,31 @@ index 00000000000000..5b146749350bf5
 +		return nil, err
 +	}
 +	defer C.go_openssl_OSSL_PARAM_free(params)
-+	return newEvpFromParams(C.GO_EVP_PKEY_EC, selection, params)
++	pkey, err := newEvpFromParams(C.GO_EVP_PKEY_EC, selection, params)
++	if err != nil {
++		return nil, err
++	}
++
++	if err := checkPkey(pkey, isPrivate); err != nil {
++		C.go_openssl_EVP_PKEY_free(pkey)
++		return nil, errors.New("crypto/ecdh: " + err.Error())
++	}
++	return pkey, nil
 +}
 +
-+// deriveEcdhPublicKey sets the raw public key of pkey by deriving it from
-+// the raw private key.
-+func deriveEcdhPublicKey(pkey C.GO_EVP_PKEY_PTR, curve string) error {
-+	derive := func(group C.GO_EC_GROUP_PTR, priv C.GO_BIGNUM_PTR) (C.GO_EC_POINT_PTR, error) {
-+		// OpenSSL does not expose any method to generate the public
-+		// key from the private key [1], so we have to calculate it here.
-+		// [1] https://github.com/openssl/openssl/issues/18437#issuecomment-1144717206
-+		pt := C.go_openssl_EC_POINT_new(group)
-+		if pt == nil {
-+			return nil, newOpenSSLError("EC_POINT_new")
-+		}
-+		if C.go_openssl_EC_POINT_mul(group, pt, priv, nil, nil, nil) == 0 {
-+			C.go_openssl_EC_POINT_free(pt)
-+			return nil, newOpenSSLError("EC_POINT_mul")
-+		}
-+		return pt, nil
++func pointMult(group C.GO_EC_GROUP_PTR, priv C.GO_BIGNUM_PTR) (C.GO_EC_POINT_PTR, error) {
++	// OpenSSL does not expose any method to generate the public
++	// key from the private key [1], so we have to calculate it here.
++	// [1] https://github.com/openssl/openssl/issues/18437#issuecomment-1144717206
++	pt := C.go_openssl_EC_POINT_new(group)
++	if pt == nil {
++		return nil, newOpenSSLError("EC_POINT_new")
 +	}
-+	switch vMajor {
-+	case 1:
-+		key := getECKey(pkey)
-+		priv := C.go_openssl_EC_KEY_get0_private_key(key)
-+		if priv == nil {
-+			return newOpenSSLError("EC_KEY_get0_private_key")
-+		}
-+		group := C.go_openssl_EC_KEY_get0_group(key)
-+		pub, err := derive(group, priv)
-+		if err != nil {
-+			return err
-+		}
-+		defer C.go_openssl_EC_POINT_free(pub)
-+		if C.go_openssl_EC_KEY_set_public_key(key, pub) != 1 {
-+			return newOpenSSLError("EC_KEY_set_public_key")
-+		}
-+	case 3:
-+		var priv C.GO_BIGNUM_PTR
-+		if C.go_openssl_EVP_PKEY_get_bn_param(pkey, _OSSL_PKEY_PARAM_PRIV_KEY, &priv) != 1 {
-+			return newOpenSSLError("EVP_PKEY_get_bn_param")
-+		}
-+		defer C.go_openssl_BN_clear_free(priv)
-+		nid, _ := curveNID(curve)
-+		pubBytes, err := generateAndEncodeEcPublicKey(nid, func(group C.GO_EC_GROUP_PTR) (C.GO_EC_POINT_PTR, error) {
-+			return derive(group, priv)
-+		})
-+		if err != nil {
-+			return err
-+		}
-+		if C.go_openssl_EVP_PKEY_set1_encoded_public_key(pkey, base(pubBytes), C.size_t(len(pubBytes))) != 1 {
-+			return newOpenSSLError("EVP_PKEY_set1_encoded_public_key")
-+		}
-+	default:
-+		panic(errUnsupportedVersion())
++	if C.go_openssl_EC_POINT_mul(group, pt, priv, nil, nil, nil) == 0 {
++		C.go_openssl_EC_POINT_free(pt)
++		return nil, newOpenSSLError("EC_POINT_mul")
 +	}
-+	return nil
++	return pt, nil
 +}
 +
 +func ECDH(priv *PrivateKeyECDH, pub *PublicKeyECDH) ([]byte, error) {
@@ -1887,16 +1893,16 @@ index 00000000000000..5b146749350bf5
 +	if err := bnToBinPad(priv, bytes); err != nil {
 +		return nil, nil, err
 +	}
-+	k = &PrivateKeyECDH{pkey, curve, true}
++	k = &PrivateKeyECDH{pkey, curve}
 +	runtime.SetFinalizer(k, (*PrivateKeyECDH).finalize)
 +	return k, bytes, nil
 +}
 diff --git a/src/vendor/github.com/golang-fips/openssl/v2/ecdsa.go b/src/vendor/github.com/golang-fips/openssl/v2/ecdsa.go
 new file mode 100644
-index 00000000000000..f85782a6e92268
+index 00000000000000..bc5f1117fd4355
 --- /dev/null
 +++ b/src/vendor/github.com/golang-fips/openssl/v2/ecdsa.go
-@@ -0,0 +1,211 @@
+@@ -0,0 +1,208 @@
 +//go:build !cmd_go_bootstrap
 +
 +package openssl
@@ -2021,10 +2027,7 @@ index 00000000000000..f85782a6e92268
 +}
 +
 +func newECDSAKey(curve string, x, y, d BigInt) (C.GO_EVP_PKEY_PTR, error) {
-+	nid, err := curveNID(curve)
-+	if err != nil {
-+		return nil, err
-+	}
++	nid := curveNID(curve)
 +	var bx, by, bd C.GO_BIGNUM_PTR
 +	defer func() {
 +		C.go_openssl_BN_free(bx)
@@ -2110,10 +2113,10 @@ index 00000000000000..f85782a6e92268
 +}
 diff --git a/src/vendor/github.com/golang-fips/openssl/v2/ed25519.go b/src/vendor/github.com/golang-fips/openssl/v2/ed25519.go
 new file mode 100644
-index 00000000000000..77ccbf590d87b5
+index 00000000000000..cd237025109997
 --- /dev/null
 +++ b/src/vendor/github.com/golang-fips/openssl/v2/ed25519.go
-@@ -0,0 +1,221 @@
+@@ -0,0 +1,218 @@
 +//go:build !cmd_go_bootstrap
 +
 +package openssl
@@ -2125,7 +2128,6 @@ index 00000000000000..77ccbf590d87b5
 +	"runtime"
 +	"strconv"
 +	"sync"
-+	"unsafe"
 +)
 +
 +const (
@@ -2153,9 +2155,7 @@ index 00000000000000..77ccbf590d87b5
 +			}
 +		}
 +	case 3:
-+		name := C.CString("ED25519")
-+		defer C.free(unsafe.Pointer(name))
-+		sig := C.go_openssl_EVP_SIGNATURE_fetch(nil, name, nil)
++		sig := C.go_openssl_EVP_SIGNATURE_fetch(nil, keyTypeED25519, nil)
 +		if sig != nil {
 +			C.go_openssl_EVP_SIGNATURE_free(sig)
 +			return true
@@ -2337,10 +2337,10 @@ index 00000000000000..77ccbf590d87b5
 +}
 diff --git a/src/vendor/github.com/golang-fips/openssl/v2/evp.go b/src/vendor/github.com/golang-fips/openssl/v2/evp.go
 new file mode 100644
-index 00000000000000..91296a93f72d55
+index 00000000000000..ef68bbfb8fb065
 --- /dev/null
 +++ b/src/vendor/github.com/golang-fips/openssl/v2/evp.go
-@@ -0,0 +1,519 @@
+@@ -0,0 +1,569 @@
 +//go:build !cmd_go_bootstrap
 +
 +package openssl
@@ -2354,6 +2354,12 @@ index 00000000000000..91296a93f72d55
 +	"strconv"
 +	"sync"
 +	"unsafe"
++)
++
++var (
++	keyTypeRSA     = C.CString("RSA")
++	keyTypeEC      = C.CString("EC")
++	keyTypeED25519 = C.CString("ED25519")
 +)
 +
 +// cacheMD is a cache of crypto.Hash to GO_EVP_MD_PTR.
@@ -2500,36 +2506,53 @@ index 00000000000000..91296a93f72d55
 +	return nil
 +}
 +
++// generateEVPPKey generates a new EVP_PKEY with the given id and properties.
 +func generateEVPPKey(id C.int, bits int, curve string) (C.GO_EVP_PKEY_PTR, error) {
 +	if bits != 0 && curve != "" {
 +		return nil, fail("incorrect generateEVPPKey parameters")
 +	}
-+	ctx := C.go_openssl_EVP_PKEY_CTX_new_id(id, nil)
-+	if ctx == nil {
-+		return nil, newOpenSSLError("EVP_PKEY_CTX_new_id failed")
-+	}
-+	defer C.go_openssl_EVP_PKEY_CTX_free(ctx)
-+	if C.go_openssl_EVP_PKEY_keygen_init(ctx) != 1 {
-+		return nil, newOpenSSLError("EVP_PKEY_keygen_init failed")
-+	}
-+	if bits != 0 {
-+		if C.go_openssl_EVP_PKEY_CTX_ctrl(ctx, id, -1, C.GO_EVP_PKEY_CTRL_RSA_KEYGEN_BITS, C.int(bits), nil) != 1 {
-+			return nil, newOpenSSLError("EVP_PKEY_CTX_ctrl failed")
-+		}
-+	}
-+	if curve != "" {
-+		nid, err := curveNID(curve)
-+		if err != nil {
-+			return nil, err
-+		}
-+		if C.go_openssl_EVP_PKEY_CTX_ctrl(ctx, id, -1, C.GO_EVP_PKEY_CTRL_EC_PARAMGEN_CURVE_NID, nid, nil) != 1 {
-+			return nil, newOpenSSLError("EVP_PKEY_CTX_ctrl failed")
-+		}
-+	}
 +	var pkey C.GO_EVP_PKEY_PTR
-+	if C.go_openssl_EVP_PKEY_keygen(ctx, &pkey) != 1 {
-+		return nil, newOpenSSLError("EVP_PKEY_keygen failed")
++	switch vMajor {
++	case 1:
++		ctx := C.go_openssl_EVP_PKEY_CTX_new_id(id, nil)
++		if ctx == nil {
++			return nil, newOpenSSLError("EVP_PKEY_CTX_new_id")
++		}
++		defer C.go_openssl_EVP_PKEY_CTX_free(ctx)
++		if C.go_openssl_EVP_PKEY_keygen_init(ctx) != 1 {
++			return nil, newOpenSSLError("EVP_PKEY_keygen_init")
++		}
++		if bits != 0 {
++			if C.go_openssl_EVP_PKEY_CTX_ctrl(ctx, id, -1, C.GO_EVP_PKEY_CTRL_RSA_KEYGEN_BITS, C.int(bits), nil) != 1 {
++				return nil, newOpenSSLError("EVP_PKEY_CTX_ctrl")
++			}
++		}
++		if curve != "" {
++			if C.go_openssl_EVP_PKEY_CTX_ctrl(ctx, id, -1, C.GO_EVP_PKEY_CTRL_EC_PARAMGEN_CURVE_NID, curveNID(curve), nil) != 1 {
++				return nil, newOpenSSLError("EVP_PKEY_CTX_ctrl")
++			}
++		}
++		if C.go_openssl_EVP_PKEY_keygen(ctx, &pkey) != 1 {
++			return nil, newOpenSSLError("EVP_PKEY_keygen")
++		}
++	case 3:
++		switch id {
++		case C.GO_EVP_PKEY_RSA:
++			pkey = C.go_openssl_EVP_PKEY_Q_keygen_RSA(nil, nil, keyTypeRSA, C.size_t(bits))
++		case C.GO_EVP_PKEY_EC:
++			pkey = C.go_openssl_EVP_PKEY_Q_keygen_EC(nil, nil, keyTypeEC, C.go_openssl_OBJ_nid2sn(curveNID(curve)))
++		case C.GO_EVP_PKEY_ED25519:
++			pkey = C.go_openssl_EVP_PKEY_Q_keygen(nil, nil, keyTypeED25519)
++		default:
++			panic("unsupported key type '" + strconv.Itoa(int(id)) + "'")
++		}
++		if pkey == nil {
++			return nil, newOpenSSLError("EVP_PKEY_Q_keygen")
++		}
++	default:
++		panic(errUnsupportedVersion())
 +	}
++
 +	return pkey, nil
 +}
 +
@@ -2856,16 +2879,43 @@ index 00000000000000..91296a93f72d55
 +	}
 +	var pkey C.GO_EVP_PKEY_PTR
 +	if C.go_openssl_EVP_PKEY_fromdata(ctx, &pkey, selection, params) != 1 {
++		if vMajor == 3 && vMinor <= 2 {
++			// OpenSSL 3.0.1 and 3.0.2 have a bug where EVP_PKEY_fromdata
++			// does not free the internally allocated EVP_PKEY on error.
++			// See https://github.com/openssl/openssl/issues/17407.
++			C.go_openssl_EVP_PKEY_free(pkey)
++		}
 +		return nil, newOpenSSLError("EVP_PKEY_fromdata")
 +	}
 +	return pkey, nil
 +}
++
++func checkPkey(pkey C.GO_EVP_PKEY_PTR, isPrivate bool) error {
++	ctx := C.go_openssl_EVP_PKEY_CTX_new(pkey, nil)
++	if ctx == nil {
++		return newOpenSSLError("EVP_PKEY_CTX_new")
++	}
++	defer C.go_openssl_EVP_PKEY_CTX_free(ctx)
++	if isPrivate {
++		if C.go_openssl_EVP_PKEY_private_check(ctx) != 1 {
++			// Match upstream error message.
++			return errors.New("invalid private key")
++		}
++	} else {
++		// Upstream Go does a partial check here, so do we.
++		if C.go_openssl_EVP_PKEY_public_check_quick(ctx) != 1 {
++			// Match upstream error message.
++			return errors.New("invalid public key")
++		}
++	}
++	return nil
++}
 diff --git a/src/vendor/github.com/golang-fips/openssl/v2/goopenssl.c b/src/vendor/github.com/golang-fips/openssl/v2/goopenssl.c
 new file mode 100644
-index 00000000000000..c3385b9d0186c6
+index 00000000000000..626f184badc53d
 --- /dev/null
 +++ b/src/vendor/github.com/golang-fips/openssl/v2/goopenssl.c
-@@ -0,0 +1,240 @@
+@@ -0,0 +1,248 @@
 +//go:build unix || windows
 +
 +#include "goopenssl.h"
@@ -2890,6 +2940,7 @@ index 00000000000000..c3385b9d0186c6
 +#define DEFINEFUNC_3_0(ret, func, args, argscall)              DEFINEFUNC(ret, func, args, argscall)
 +#define DEFINEFUNC_RENAMED_1_1(ret, func, oldfunc, args, argscall) DEFINEFUNC(ret, func, args, argscall)
 +#define DEFINEFUNC_RENAMED_3_0(ret, func, oldfunc, args, argscall) DEFINEFUNC(ret, func, args, argscall)
++#define DEFINEFUNC_VARIADIC_3_0(ret, func, newname, args, argscall)  DEFINEFUNC(ret, newname, args, argscall)
 +
 +FOR_ALL_OPENSSL_FUNCTIONS
 +
@@ -2902,6 +2953,7 @@ index 00000000000000..c3385b9d0186c6
 +#undef DEFINEFUNC_3_0
 +#undef DEFINEFUNC_RENAMED_1_1
 +#undef DEFINEFUNC_RENAMED_3_0
++#undef DEFINEFUNC_VARIADIC_3_0
 +
 +// go_openssl_fips_enabled returns 1 if FIPS mode is enabled, 0 otherwise.
 +// As a special case, it returns -1 if it cannot determine if FIPS mode is enabled.
@@ -3008,6 +3060,11 @@ index 00000000000000..c3385b9d0186c6
 +    {                                                               \
 +        DEFINEFUNC_INTERNAL(func, #func)                            \
 +    }
++#define DEFINEFUNC_VARIADIC_3_0(ret, func, newname, args, argscall)   \
++    if (major == 3)                                                 \
++    {                                                               \
++        DEFINEFUNC_INTERNAL(newname, #func)                         \
++    }
 +
 +FOR_ALL_OPENSSL_FUNCTIONS
 +
@@ -3020,6 +3077,7 @@ index 00000000000000..c3385b9d0186c6
 +#undef DEFINEFUNC_3_0
 +#undef DEFINEFUNC_RENAMED_1_1
 +#undef DEFINEFUNC_RENAMED_3_0
++#undef DEFINEFUNC_VARIADIC_3_0
 +}
 +
 +static unsigned long
@@ -3108,10 +3166,10 @@ index 00000000000000..c3385b9d0186c6
 +}
 diff --git a/src/vendor/github.com/golang-fips/openssl/v2/goopenssl.h b/src/vendor/github.com/golang-fips/openssl/v2/goopenssl.h
 new file mode 100644
-index 00000000000000..a50caa3d82312c
+index 00000000000000..1165f99157c663
 --- /dev/null
 +++ b/src/vendor/github.com/golang-fips/openssl/v2/goopenssl.h
-@@ -0,0 +1,259 @@
+@@ -0,0 +1,262 @@
 +// This header file describes the OpenSSL ABI as built for use in Go.
 +
 +#include <stdlib.h> // size_t
@@ -3173,6 +3231,8 @@ index 00000000000000..a50caa3d82312c
 +    DEFINEFUNC(ret, func, args, argscall)
 +#define DEFINEFUNC_RENAMED_3_0(ret, func, oldfunc, args, argscall)     \
 +    DEFINEFUNC(ret, func, args, argscall)
++#define DEFINEFUNC_VARIADIC_3_0(ret, func, newname, args, argscall)     \
++    DEFINEFUNC(ret, newname, args, argscall)
 +
 +FOR_ALL_OPENSSL_FUNCTIONS
 +
@@ -3185,6 +3245,7 @@ index 00000000000000..a50caa3d82312c
 +#undef DEFINEFUNC_3_0
 +#undef DEFINEFUNC_RENAMED_1_1
 +#undef DEFINEFUNC_RENAMED_3_0
++#undef DEFINEFUNC_VARIADIC_3_0
 +
 +// go_hash_sum copies ctx into ctx2 and calls EVP_DigestFinal using ctx2.
 +// This is necessary because Go hash.Hash mandates that Sum has no effect
@@ -4421,10 +4482,10 @@ index 00000000000000..6fd3a518906004
 +}
 diff --git a/src/vendor/github.com/golang-fips/openssl/v2/hkdf.go b/src/vendor/github.com/golang-fips/openssl/v2/hkdf.go
 new file mode 100644
-index 00000000000000..f2ff598de65b2d
+index 00000000000000..d4f8aa6a92a6fb
 --- /dev/null
 +++ b/src/vendor/github.com/golang-fips/openssl/v2/hkdf.go
-@@ -0,0 +1,285 @@
+@@ -0,0 +1,322 @@
 +//go:build !cmd_go_bootstrap
 +
 +package openssl
@@ -4576,6 +4637,43 @@ index 00000000000000..f2ff598de65b2d
 +	default:
 +		panic(errUnsupportedVersion())
 +	}
++}
++
++// ExpandHKDFOneShot derives a key from the given hash, key, and optional context info.
++func ExpandHKDFOneShot(h func() hash.Hash, pseudorandomKey, info []byte, keyLength int) ([]byte, error) {
++	if !SupportsHKDF() {
++		return nil, errUnsupportedVersion()
++	}
++
++	md, err := hashFuncToMD(h)
++	if err != nil {
++		return nil, err
++	}
++
++	out := make([]byte, keyLength)
++	switch vMajor {
++	case 1:
++		ctx, err := newHKDFCtx1(md, C.GO_EVP_KDF_HKDF_MODE_EXPAND_ONLY, nil, nil, pseudorandomKey, info)
++		if err != nil {
++			return nil, err
++		}
++		defer C.go_openssl_EVP_PKEY_CTX_free(ctx)
++		if C.go_openssl_EVP_PKEY_derive_wrapper(ctx, base(out), C.size_t(keyLength)).result != 1 {
++			return nil, newOpenSSLError("EVP_PKEY_derive")
++		}
++	case 3:
++		ctx, err := newHKDFCtx3(md, C.GO_EVP_KDF_HKDF_MODE_EXPAND_ONLY, nil, nil, pseudorandomKey, info)
++		if err != nil {
++			return nil, err
++		}
++		defer C.go_openssl_EVP_KDF_CTX_free(ctx)
++		if C.go_openssl_EVP_KDF_derive(ctx, base(out), C.size_t(keyLength), nil) != 1 {
++			return nil, newOpenSSLError("EVP_KDF_derive")
++		}
++	default:
++		panic(errUnsupportedVersion())
++	}
++	return out, nil
 +}
 +
 +func ExpandHKDF(h func() hash.Hash, pseudorandomKey, info []byte) (io.Reader, error) {
@@ -5141,10 +5239,10 @@ index 00000000000000..3778e21227abb9
 +}
 diff --git a/src/vendor/github.com/golang-fips/openssl/v2/openssl.go b/src/vendor/github.com/golang-fips/openssl/v2/openssl.go
 new file mode 100644
-index 00000000000000..f8b3f6ee140ace
+index 00000000000000..145b082f1b771c
 --- /dev/null
 +++ b/src/vendor/github.com/golang-fips/openssl/v2/openssl.go
-@@ -0,0 +1,462 @@
+@@ -0,0 +1,469 @@
 +//go:build !cmd_go_bootstrap
 +
 +// Package openssl provides access to OpenSSL cryptographic functions.
@@ -5250,6 +5348,7 @@ index 00000000000000..f8b3f6ee140ace
 +	providerNameFips    = C.CString("fips")
 +	providerNameDefault = C.CString("default")
 +	propFIPS            = C.CString("fips=yes")
++	propNoFIPS          = C.CString("-fips")
 +
 +	algorithmSHA256 = C.CString("SHA2-256")
 +)
@@ -5274,12 +5373,7 @@ index 00000000000000..f8b3f6ee140ace
 +		// but that is highly unlikely because SHA-256 is one of the most common algorithms and fundamental to many cryptographic operations.
 +		// It also has a small chance of false positive if the FIPS provider implements the SHA-256 algorithm but not the other algorithms
 +		// used by the caller application, but that is also unlikely because the FIPS provider should provide all common algorithms.
-+		md := C.go_openssl_EVP_MD_fetch(nil, algorithmSHA256, nil)
-+		if md == nil {
-+			return false
-+		}
-+		C.go_openssl_EVP_MD_free(md)
-+		return true
++		return proveSHA256(nil)
 +	default:
 +		panic(errUnsupportedVersion())
 +	}
@@ -5288,6 +5382,9 @@ index 00000000000000..f8b3f6ee140ace
 +// isProviderAvailable checks if the provider with the given name is available.
 +// This function is used in export_test.go, but must be defined here as test files can't access C functions.
 +func isProviderAvailable(name string) bool {
++	if vMajor == 1 {
++		return false
++	}
 +	providerName := C.CString(name)
 +	defer C.free(unsafe.Pointer(providerName))
 +	return C.go_openssl_OSSL_PROVIDER_available(nil, providerName) == 1
@@ -5295,11 +5392,15 @@ index 00000000000000..f8b3f6ee140ace
 +
 +// SetFIPS enables or disables FIPS mode.
 +//
-+// For OpenSSL 3, the `fips` provider is loaded if enabled is true,
-+// else the `default` provider is loaded.
-+func SetFIPS(enabled bool) error {
++// For OpenSSL 3, if there is no provider available that supports FIPS mode,
++// SetFIPS will try to load a built-in provider that supports FIPS mode.
++func SetFIPS(enable bool) error {
++	if FIPS() == enable {
++		// Already in the desired state.
++		return nil
++	}
 +	var mode C.int
-+	if enabled {
++	if enable {
 +		mode = C.int(1)
 +	} else {
 +		mode = C.int(0)
@@ -5311,31 +5412,23 @@ index 00000000000000..f8b3f6ee140ace
 +		}
 +		return nil
 +	case 3:
-+		var provName *C.char
-+		if enabled {
++		var shaProps, provName *C.char
++		if enable {
++			shaProps = propFIPS
 +			provName = providerNameFips
 +		} else {
++			shaProps = propNoFIPS
 +			provName = providerNameDefault
 +		}
-+		// Try to load the provider, but don't fail if it's not loaded.
-+		// The built-in provider might not be present in the system.
-+		// We don't need the built-in provider if third-party providers are being used: they are already loaded.
-+		// If the system is not well-configured and has no FIPS capability, this will be detected by the next steps.
-+		C.go_openssl_OSSL_PROVIDER_try_load(nil, provName, 1)
-+		C.go_openssl_ERR_clear_error()
-+
-+		// See FIPS() for the rationale behind this check.
-+		md := C.go_openssl_EVP_MD_fetch(nil, algorithmSHA256, propFIPS)
-+		if md == nil {
-+			// Don't enable FIPS mode if there is no provider that supports it.
-+			// This makes it easier for callers to call SetFIPS(true) to do a
-+			// best-effort attempt to enable FIPS mode, but not fail if it's not possible.
-+			C.go_openssl_ERR_clear_error()
-+			return errors.New("openssl: FIPS mode not supported by any provider")
++		if !proveSHA256(shaProps) {
++			// There is no provider available that supports the desired FIPS mode.
++			// Try to load the built-in provider associated with the given mode.
++			if C.go_openssl_OSSL_PROVIDER_try_load(nil, provName, 1) == nil {
++				// The built-in provider was not loaded successfully, we can't enable FIPS mode.
++				C.go_openssl_ERR_clear_error()
++				return errors.New("openssl: FIPS mode not supported by any provider")
++			}
 +		}
-+		C.go_openssl_EVP_MD_free(md)
-+
-+		// Enable FIPS mode in the default properties.
 +		if C.go_openssl_EVP_default_properties_enable_fips(nil, mode) != 1 {
 +			return newOpenSSLError("EVP_default_properties_enable_fips")
 +		}
@@ -5343,6 +5436,18 @@ index 00000000000000..f8b3f6ee140ace
 +	default:
 +		panic(errUnsupportedVersion())
 +	}
++}
++
++// proveSHA256 checks if the SHA-256 algorithm is available
++// using the given properties.
++func proveSHA256(props *C.char) bool {
++	md := C.go_openssl_EVP_MD_fetch(nil, algorithmSHA256, props)
++	if md == nil {
++		C.go_openssl_ERR_clear_error()
++		return false
++	}
++	C.go_openssl_EVP_MD_free(md)
++	return true
 +}
 +
 +// noescape hides a pointer from escape analysis. noescape is
@@ -6215,7 +6320,7 @@ index 00000000000000..f1cd3647fb9753
 +}
 diff --git a/src/vendor/github.com/golang-fips/openssl/v2/rsa.go b/src/vendor/github.com/golang-fips/openssl/v2/rsa.go
 new file mode 100644
-index 00000000000000..cd5b3b8e2a9a85
+index 00000000000000..da5c7636173775
 --- /dev/null
 +++ b/src/vendor/github.com/golang-fips/openssl/v2/rsa.go
 @@ -0,0 +1,408 @@
@@ -6459,7 +6564,7 @@ index 00000000000000..cd5b3b8e2a9a85
 +	// A salt length of -2 is valid in OpenSSL, but not in crypto/rsa, so reject
 +	// it, and lengths < -2, before we convert to the OpenSSL sentinel values.
 +	if saltLen <= -2 {
-+		return 0, errors.New("crypto/rsa: PSSOptions.SaltLength cannot be negative")
++		return 0, errors.New("crypto/rsa: invalid PSS salt length")
 +	}
 +	// OpenSSL uses sentinel salt length values like Go crypto does,
 +	// but the values don't fully match for rsa.PSSSaltLengthAuto (0).
@@ -6629,10 +6734,10 @@ index 00000000000000..cd5b3b8e2a9a85
 +}
 diff --git a/src/vendor/github.com/golang-fips/openssl/v2/shims.h b/src/vendor/github.com/golang-fips/openssl/v2/shims.h
 new file mode 100644
-index 00000000000000..156d8e8ada678c
+index 00000000000000..c8f599f71c0b20
 --- /dev/null
 +++ b/src/vendor/github.com/golang-fips/openssl/v2/shims.h
-@@ -0,0 +1,401 @@
+@@ -0,0 +1,416 @@
 +#include <stdlib.h> // size_t
 +#include <stdint.h> // uint64_t
 +
@@ -6792,6 +6897,15 @@ index 00000000000000..156d8e8ada678c
 +// DEFINEFUNC_RENAMED_3_0 acts like DEFINEFUNC but tries to load the function using the new name when using >= 3.x
 +// and the old name when using 1.x. In both cases the function will have the new name.
 +//
++// DEFINEFUNC_VARIADIC_3_0 acts like DEFINEFUNC but creates an alias with a more specific signature.
++// This is necessary to call variadic functions (functions that accept a variable number of arguments)
++// because variadic functions are not directly compatible with cgo. By defining a cgo-compatible alias
++// for each desired signature, the C compiler handles the variadic arguments rather than cgo.
++// Variadic functions are the only known incompatibility of this kind.
++// If you use this macro for a different reason, consider renaming it to something more general first.
++// See https://github.com/golang/go/issues/975.
++// The process is aborted if the function can't be loaded when using 3.0.0 or higher.
++//
 +// #include <openssl/crypto.h>
 +// #include <openssl/err.h>
 +// #include <openssl/rsa.h>
@@ -6933,6 +7047,9 @@ index 00000000000000..156d8e8ada678c
 +DEFINEFUNC(int, EVP_PKEY_paramgen, (GO_EVP_PKEY_CTX_PTR ctx, GO_EVP_PKEY_PTR *ppkey), (ctx, ppkey)) \
 +DEFINEFUNC(int, EVP_PKEY_keygen_init, (GO_EVP_PKEY_CTX_PTR ctx), (ctx)) \
 +DEFINEFUNC(int, EVP_PKEY_keygen, (GO_EVP_PKEY_CTX_PTR ctx, GO_EVP_PKEY_PTR *ppkey), (ctx, ppkey)) \
++DEFINEFUNC_VARIADIC_3_0(GO_EVP_PKEY_PTR, EVP_PKEY_Q_keygen, EVP_PKEY_Q_keygen, (GO_OSSL_LIB_CTX_PTR ctx, const char *propq, const char *type), (ctx, propq, type)) \
++DEFINEFUNC_VARIADIC_3_0(GO_EVP_PKEY_PTR, EVP_PKEY_Q_keygen, EVP_PKEY_Q_keygen_RSA, (GO_OSSL_LIB_CTX_PTR ctx, const char *propq, const char *type, size_t arg1), (ctx, propq, type, arg1)) \
++DEFINEFUNC_VARIADIC_3_0(GO_EVP_PKEY_PTR, EVP_PKEY_Q_keygen, EVP_PKEY_Q_keygen_EC, (GO_OSSL_LIB_CTX_PTR ctx, const char *propq, const char *type, const char *arg1), (ctx, propq, type, arg1)) \
 +DEFINEFUNC(void, EVP_PKEY_CTX_free, (GO_EVP_PKEY_CTX_PTR arg0), (arg0)) \
 +DEFINEFUNC(int, EVP_PKEY_CTX_ctrl, (GO_EVP_PKEY_CTX_PTR ctx, int keytype, int optype, int cmd, int p1, void *p2), (ctx, keytype, optype, cmd, p1, p2)) \
 +DEFINEFUNC(int, EVP_PKEY_decrypt, (GO_EVP_PKEY_CTX_PTR arg0, unsigned char *arg1, size_t *arg2, const unsigned char *arg3, size_t arg4), (arg0, arg1, arg2, arg3, arg4)) \
@@ -6945,6 +7062,8 @@ index 00000000000000..156d8e8ada678c
 +DEFINEFUNC(int, EVP_PKEY_derive_init, (GO_EVP_PKEY_CTX_PTR ctx), (ctx)) \
 +DEFINEFUNC(int, EVP_PKEY_derive_set_peer, (GO_EVP_PKEY_CTX_PTR ctx, GO_EVP_PKEY_PTR peer), (ctx, peer)) \
 +DEFINEFUNC(int, EVP_PKEY_derive, (GO_EVP_PKEY_CTX_PTR ctx, unsigned char *key, size_t *keylen), (ctx, key, keylen)) \
++DEFINEFUNC_3_0(int, EVP_PKEY_public_check_quick, (GO_EVP_PKEY_CTX_PTR ctx), (ctx)) \
++DEFINEFUNC_3_0(int, EVP_PKEY_private_check, (GO_EVP_PKEY_CTX_PTR ctx), (ctx)) \
 +DEFINEFUNC_LEGACY_1_0(void*, EVP_PKEY_get0, (GO_EVP_PKEY_PTR pkey), (pkey)) \
 +DEFINEFUNC_LEGACY_1_1(GO_EC_KEY_PTR, EVP_PKEY_get0_EC_KEY, (GO_EVP_PKEY_PTR pkey), (pkey)) \
 +DEFINEFUNC_LEGACY_1_1(GO_DSA_PTR, EVP_PKEY_get0_DSA, (GO_EVP_PKEY_PTR pkey), (pkey)) \
@@ -6980,6 +7099,7 @@ index 00000000000000..156d8e8ada678c
 +DEFINEFUNC_LEGACY_1(const GO_EC_POINT_PTR, EC_KEY_get0_public_key, (const GO_EC_KEY_PTR arg0), (arg0)) \
 +DEFINEFUNC_LEGACY_1(GO_EC_KEY_PTR, EC_KEY_new_by_curve_name, (int arg0), (arg0)) \
 +DEFINEFUNC_LEGACY_1(int, EC_KEY_set_private_key, (GO_EC_KEY_PTR arg0, const GO_BIGNUM_PTR arg1), (arg0, arg1)) \
++DEFINEFUNC_LEGACY_1(int, EC_KEY_check_key, (const GO_EC_KEY_PTR key), (key)) \
 +DEFINEFUNC(GO_EC_POINT_PTR, EC_POINT_new, (const GO_EC_GROUP_PTR arg0), (arg0)) \
 +DEFINEFUNC(void, EC_POINT_free, (GO_EC_POINT_PTR arg0), (arg0)) \
 +DEFINEFUNC(int, EC_POINT_mul, (const GO_EC_GROUP_PTR group, GO_EC_POINT_PTR r, const GO_BIGNUM_PTR n, const GO_EC_POINT_PTR q, const GO_BIGNUM_PTR m, GO_BN_CTX_PTR ctx), (group, r, n, q, m, ctx)) \
@@ -8270,10 +8390,10 @@ index 00000000000000..de3f05b84f1d82
 +}
 diff --git a/src/vendor/github.com/microsoft/go-crypto-winnative/cng/dsa.go b/src/vendor/github.com/microsoft/go-crypto-winnative/cng/dsa.go
 new file mode 100644
-index 00000000000000..5d4d3974d0c52c
+index 00000000000000..7ab5ac38921d82
 --- /dev/null
 +++ b/src/vendor/github.com/microsoft/go-crypto-winnative/cng/dsa.go
-@@ -0,0 +1,469 @@
+@@ -0,0 +1,465 @@
 +// Copyright (c) Microsoft Corporation.
 +// Licensed under the MIT License.
 +
@@ -8337,11 +8457,11 @@ index 00000000000000..5d4d3974d0c52c
 +	return uint32(len(p.Q))
 +}
 +
-+// GenerateDSAParameters generates a set of DSA parameters for a key of size L bytes.
++// GenerateParametersDSA generates a set of DSA parameters for a key of size L bytes.
 +// If L is less than or equal to 1024, the parameters are generated according to FIPS 186-2.
 +// If L is greater than 1024, the parameters are generated according to FIPS 186-3.
 +// The returned parameters are suitable for use in GenerateKey.
-+func GenerateDSAParameters(L int) (params DSAParameters, err error) {
++func GenerateParametersDSA(L int) (params DSAParameters, err error) {
 +	h, err := loadDSA()
 +	if err != nil {
 +		return DSAParameters{}, err
@@ -8389,35 +8509,31 @@ index 00000000000000..5d4d3974d0c52c
 +}
 +
 +// GenerateKeyDSA generates a new private DSA key using the given parameters.
-+func GenerateKeyDSA(params DSAParameters) (*PrivateKeyDSA, error) {
++func GenerateKeyDSA(params DSAParameters) (x, y BigInt, err error) {
 +	h, err := loadDSA()
 +	if err != nil {
-+		return nil, err
++		return nil, nil, err
 +	}
 +	keySize := params.keySize()
 +	if !keyIsAllowed(h.allowedKeyLengths, keySize*8) {
-+		return nil, errors.New("crypto/dsa: invalid key size")
++		return nil, nil, errors.New("crypto/dsa: invalid key size")
 +	}
 +	var hkey bcrypt.KEY_HANDLE
 +	if err := bcrypt.GenerateKeyPair(h.handle, &hkey, keySize*8, 0); err != nil {
-+		return nil, err
++		return nil, nil, err
 +	}
++	defer bcrypt.DestroyKey(hkey)
 +	if err := setDSAParameter(hkey, params); err != nil {
-+		bcrypt.DestroyKey(hkey)
-+		return nil, err
++		return nil, nil, err
 +	}
 +	if err := bcrypt.FinalizeKeyPair(hkey, 0); err != nil {
-+		bcrypt.DestroyKey(hkey)
-+		return nil, err
++		return nil, nil, err
 +	}
-+	_, x, y, err := decodeDSAKey(hkey, true)
++	_, x, y, err = decodeDSAKey(hkey, true)
 +	if err != nil {
-+		bcrypt.DestroyKey(hkey)
-+		return nil, err
++		return nil, nil, err
 +	}
-+	k := &PrivateKeyDSA{params, x, y, hkey}
-+	runtime.SetFinalizer(k, (*PrivateKeyDSA).finalize)
-+	return k, nil
++	return x, y, nil
 +}
 +
 +// NewPrivateKeyDSA creates a new DSA private key from the given parameters.
@@ -9493,10 +9609,10 @@ index 00000000000000..87b1c95dc7f911
 +}
 diff --git a/src/vendor/github.com/microsoft/go-crypto-winnative/cng/hkdf.go b/src/vendor/github.com/microsoft/go-crypto-winnative/cng/hkdf.go
 new file mode 100644
-index 00000000000000..5338fb5c7b187c
+index 00000000000000..20bcc79a46ba0d
 --- /dev/null
 +++ b/src/vendor/github.com/microsoft/go-crypto-winnative/cng/hkdf.go
-@@ -0,0 +1,180 @@
+@@ -0,0 +1,124 @@
 +// Copyright (c) Microsoft Corporation.
 +// Licensed under the MIT License.
 +
@@ -9509,7 +9625,6 @@ index 00000000000000..5338fb5c7b187c
 +	"encoding/binary"
 +	"errors"
 +	"hash"
-+	"io"
 +	"runtime"
 +	"unsafe"
 +
@@ -9527,99 +9642,23 @@ index 00000000000000..5338fb5c7b187c
 +	})
 +}
 +
-+type hkdf struct {
-+	hkey bcrypt.KEY_HANDLE
-+	info []byte
-+
-+	hashLen int
-+	n       int // count of bytes requested from Read
-+	// buf contains the derived data.
-+	// len(buf) can be larger than n, as Read may derive
-+	// more data than requested and cache it in buf.
-+	buf []byte
-+}
-+
-+func (c *hkdf) finalize() {
-+	bcrypt.DestroyKey(c.hkey)
-+}
-+
-+func hkdfDerive(hkey bcrypt.KEY_HANDLE, info, out []byte) (int, error) {
-+	var params *bcrypt.BufferDesc
-+	if len(info) > 0 {
-+		params = &bcrypt.BufferDesc{
-+			Count: 1,
-+			Buffers: &bcrypt.Buffer{
-+				Length: uint32(len(info)),
-+				Type:   bcrypt.KDF_HKDF_INFO,
-+				Data:   uintptr(unsafe.Pointer(&info[0])),
-+			},
-+		}
-+		defer runtime.KeepAlive(params)
-+	}
-+	var n uint32
-+	err := bcrypt.KeyDerivation(hkey, params, out, &n, 0)
-+	return int(n), err
-+}
-+
-+func (c *hkdf) Read(p []byte) (int, error) {
-+	// KeyDerivation doesn't support incremental output, each call
-+	// derives the key from scratch and returns the requested bytes.
-+	// To implement io.Reader, we need to ask for len(c.buf) + len(p)
-+	// bytes and copy the last derived len(p) bytes to p.
-+	maxDerived := 255 * c.hashLen
-+	totalDerived := c.n + len(p)
-+	// Check whether enough data can be derived.
-+	if totalDerived > maxDerived {
-+		return 0, errors.New("hkdf: entropy limit reached")
-+	}
-+	// Check whether c.buf already contains enough derived data,
-+	// otherwise derive more data.
-+	if bytesNeeded := totalDerived - len(c.buf); bytesNeeded > 0 {
-+		// It is common to derive multiple equally sized keys from the same HKDF instance.
-+		// Optimize this case by allocating a buffer large enough to hold
-+		// at least 3 of such keys each time there is not enough data.
-+		// Round up to the next multiple of hashLen.
-+		blocks := (bytesNeeded-1)/c.hashLen + 1
-+		const minBlocks = 3
-+		if blocks < minBlocks {
-+			blocks = minBlocks
-+		}
-+		alloc := blocks * c.hashLen
-+		if len(c.buf)+alloc > maxDerived {
-+			// The buffer can't grow beyond maxDerived.
-+			alloc = maxDerived - len(c.buf)
-+		}
-+		c.buf = append(c.buf, make([]byte, alloc)...)
-+		n, err := hkdfDerive(c.hkey, c.info, c.buf)
-+		if err != nil {
-+			c.buf = c.buf[:c.n]
-+			return 0, err
-+		}
-+		// Adjust totalDerived to the actual number of bytes derived.
-+		totalDerived = n
-+	}
-+	n := copy(p, c.buf[c.n:totalDerived])
-+	c.n += n
-+	return n, nil
-+}
-+
-+func newHKDF(h func() hash.Hash, secret, salt []byte, info []byte) (*hkdf, error) {
++func newHKDF(h func() hash.Hash, secret, salt []byte, info []byte) (bcrypt.KEY_HANDLE, error) {
 +	ch := h()
 +	hashID := hashToID(ch)
 +	if hashID == "" {
-+		return nil, errors.New("cng: unsupported hash function")
++		return 0, errors.New("cng: unsupported hash function")
 +	}
 +	alg, err := loadHKDF()
 +	if err != nil {
-+		return nil, err
++		return 0, err
 +	}
 +	var kh bcrypt.KEY_HANDLE
 +	if err := bcrypt.GenerateSymmetricKey(alg, &kh, nil, secret, 0); err != nil {
-+		return nil, err
++		return 0, err
 +	}
 +	if err := setString(bcrypt.HANDLE(kh), bcrypt.HKDF_HASH_ALGORITHM, hashID); err != nil {
 +		bcrypt.DestroyKey(kh)
-+		return nil, err
++		return 0, err
 +	}
 +	if salt != nil {
 +		// Used for Extract.
@@ -9630,11 +9669,9 @@ index 00000000000000..5338fb5c7b187c
 +	}
 +	if err != nil {
 +		bcrypt.DestroyKey(kh)
-+		return nil, err
++		return 0, err
 +	}
-+	k := &hkdf{kh, info, ch.Size(), 0, nil}
-+	runtime.SetFinalizer(k, (*hkdf).finalize)
-+	return k, nil
++	return kh, nil
 +}
 +
 +func ExtractHKDF(h func() hash.Hash, secret, salt []byte) ([]byte, error) {
@@ -9646,11 +9683,11 @@ index 00000000000000..5338fb5c7b187c
 +	if err != nil {
 +		return nil, err
 +	}
-+	hdr, blob, err := exportKeyData(kh.hkey)
++	defer bcrypt.DestroyKey(kh)
++	hdr, blob, err := exportKeyData(kh)
 +	if err != nil {
 +		return nil, err
 +	}
-+	runtime.KeepAlive(kh)
 +	if hdr.Version != bcrypt.KEY_DATA_BLOB_VERSION1 {
 +		return nil, errors.New("cng: unknown key data blob version")
 +	}
@@ -9670,12 +9707,35 @@ index 00000000000000..5338fb5c7b187c
 +	return blob[cbHashName:], nil
 +}
 +
-+func ExpandHKDF(h func() hash.Hash, pseudorandomKey, info []byte) (io.Reader, error) {
++// ExpandHKDF derives a key from the given hash, key, and optional context info.
++func ExpandHKDF(h func() hash.Hash, pseudorandomKey, info []byte, keyLength int) ([]byte, error) {
 +	kh, err := newHKDF(h, pseudorandomKey, nil, info)
 +	if err != nil {
 +		return nil, err
 +	}
-+	return kh, nil
++	defer bcrypt.DestroyKey(kh)
++	out := make([]byte, keyLength)
++	var params *bcrypt.BufferDesc
++	if len(info) > 0 {
++		params = &bcrypt.BufferDesc{
++			Count: 1,
++			Buffers: &bcrypt.Buffer{
++				Length: uint32(len(info)),
++				Type:   bcrypt.KDF_HKDF_INFO,
++				Data:   uintptr(unsafe.Pointer(&info[0])),
++			},
++		}
++		defer runtime.KeepAlive(params)
++	}
++	var n uint32
++	err = bcrypt.KeyDerivation(kh, params, out, &n, 0)
++	if err != nil {
++		return nil, err
++	}
++	if int(n) != keyLength {
++		return nil, errors.New("cng: key derivation returned unexpected length")
++	}
++	return out, err
 +}
 diff --git a/src/vendor/github.com/microsoft/go-crypto-winnative/cng/hmac.go b/src/vendor/github.com/microsoft/go-crypto-winnative/cng/hmac.go
 new file mode 100644
@@ -10127,10 +10187,10 @@ index 00000000000000..f484a3e2211e04
 +}
 diff --git a/src/vendor/github.com/microsoft/go-crypto-winnative/cng/rsa.go b/src/vendor/github.com/microsoft/go-crypto-winnative/cng/rsa.go
 new file mode 100644
-index 00000000000000..e9e2a09083a05c
+index 00000000000000..0269f9cf86539e
 --- /dev/null
 +++ b/src/vendor/github.com/microsoft/go-crypto-winnative/cng/rsa.go
-@@ -0,0 +1,370 @@
+@@ -0,0 +1,396 @@
 +// Copyright (c) Microsoft Corporation.
 +// Licensed under the MIT License.
 +
@@ -10365,18 +10425,36 @@ index 00000000000000..e9e2a09083a05c
 +	return keyVerify(pub.hkey, unsafe.Pointer(&info), hashed, sig, bcrypt.PAD_PSS)
 +}
 +
-+func SignRSAPKCS1v15(priv *PrivateKeyRSA, h crypto.Hash, hashed []byte) ([]byte, error) {
++// SignRSAPKCS1v15 calculates the signature of hashed using
++// RSASSA-PKCS1-V1_5-SIGN from RSA PKCS #1 v1.5.  Note that hashed must
++// be the result of hashing the input message using the given hash
++// function. If hash is zero, hashed is signed directly.
++func SignRSAPKCS1v15(priv *PrivateKeyRSA, hash crypto.Hash, hashed []byte) ([]byte, error) {
 +	defer runtime.KeepAlive(priv)
-+	info, err := newPKCS1_PADDING_INFO(h)
++	if hash != crypto.Hash(0) {
++		if len(hashed) != hash.Size() {
++			return nil, errors.New("crypto/rsa: input must be hashed message")
++		}
++	}
++	info, err := newPKCS1_PADDING_INFO(hash)
 +	if err != nil {
 +		return nil, err
 +	}
 +	return keySign(priv.hkey, unsafe.Pointer(&info), hashed, bcrypt.PAD_PKCS1)
 +}
 +
-+func VerifyRSAPKCS1v15(pub *PublicKeyRSA, h crypto.Hash, hashed, sig []byte) error {
++// VerifyPKCS1v15 verifies an RSA PKCS #1 v1.5 signature.
++// hashed is the result of hashing the input message using the given hash
++// function and sig is the signature. A valid signature is indicated by
++// returning a nil error. If hash is zero then hashed is used directly.
++func VerifyRSAPKCS1v15(pub *PublicKeyRSA, hash crypto.Hash, hashed, sig []byte) error {
 +	defer runtime.KeepAlive(pub)
-+	info, err := newPKCS1_PADDING_INFO(h)
++	if hash != crypto.Hash(0) {
++		if len(hashed) != hash.Size() {
++			return errors.New("crypto/rsa: input must be hashed message")
++		}
++	}
++	info, err := newPKCS1_PADDING_INFO(hash)
 +	if err != nil {
 +		return err
 +	}
@@ -10448,7 +10526,7 @@ index 00000000000000..e9e2a09083a05c
 +
 +	// A salt length of -1 and 0 are valid Go sentinel values.
 +	if saltLen <= -2 {
-+		return info, errors.New("crypto/rsa: PSSOptions.SaltLength cannot be negative")
++		return info, errors.New("crypto/rsa: invalid PSS salt length")
 +	}
 +	// CNG does not support salt length special cases like Go crypto does,
 +	// so we do a best-effort to resolve them.
@@ -10474,16 +10552,24 @@ index 00000000000000..e9e2a09083a05c
 +	return
 +}
 +
-+func newPKCS1_PADDING_INFO(h crypto.Hash) (info bcrypt.PKCS1_PADDING_INFO, err error) {
-+	if h != 0 {
++func newPKCS1_PADDING_INFO(h crypto.Hash) (bcrypt.PKCS1_PADDING_INFO, error) {
++	var alg *uint16
++	switch h {
++	case 0:
++		// Unpadded RSA signatures, no need to set the hash algorithm.
++	case crypto.MD5SHA1:
++		// The MD5SHA1 hash is not supported by CNG, but the AlgId field
++		// is only used to pad the signature with the hash OID, and
++		// PKCS1 has historically used a null OID for MD5SHA1.
++		// This is a special case for compatibility with TLS 1.0/1.1.
++	default:
 +		hashID := cryptoHashToID(h)
 +		if hashID == "" {
-+			err = errors.New("crypto/rsa: unsupported hash function")
-+		} else {
-+			info.AlgId = utf16PtrFromString(hashID)
++			return bcrypt.PKCS1_PADDING_INFO{}, errors.New("crypto/rsa: unsupported hash function")
 +		}
++		alg = utf16PtrFromString(hashID)
 +	}
-+	return
++	return bcrypt.PKCS1_PADDING_INFO{AlgId: alg}, nil
 +}
 +
 +func cryptoHashToID(ch crypto.Hash) string {
@@ -11455,15 +11541,15 @@ index 00000000000000..1722410e5af193
 +	return getSystemDirectory() + "\\" + dll
 +}
 diff --git a/src/vendor/modules.txt b/src/vendor/modules.txt
-index cf5c0b83c9eeef..7c9bf41ea0bc87 100644
+index cf5c0b83c9eeef..e116e36e2473fd 100644
 --- a/src/vendor/modules.txt
 +++ b/src/vendor/modules.txt
 @@ -1,3 +1,14 @@
-+# github.com/golang-fips/openssl/v2 v2.0.4-0.20241031074328-c51a090851d3
++# github.com/golang-fips/openssl/v2 v2.0.4-0.20241211125030-65f2a3ae34cf
 +## explicit; go 1.22
 +github.com/golang-fips/openssl/v2
 +github.com/golang-fips/openssl/v2/bbig
-+# github.com/microsoft/go-crypto-winnative v0.0.0-20241031174928-19f07bc6df3d
++# github.com/microsoft/go-crypto-winnative v0.0.0-20241212090637-6d419040e383
 +## explicit; go 1.22
 +github.com/microsoft/go-crypto-winnative/cng
 +github.com/microsoft/go-crypto-winnative/cng/bbig
