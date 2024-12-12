@@ -843,20 +843,26 @@ index 7f6237ffd59c11..7c821ae4bc5727 100644
  
  // Verify that the vendor directories contain only packages matching the list above.
 diff --git a/src/hash/boring_test.go b/src/hash/boring_test.go
-index c90899062a9665..802c0f8b8987bf 100644
+index b4cb21f3580737..ff24d12966e22f 100644
 --- a/src/hash/boring_test.go
 +++ b/src/hash/boring_test.go
-@@ -1,4 +1,4 @@
+@@ -2,7 +2,7 @@
+ // Use of this source code is governed by a BSD-style
+ // license that can be found in the LICENSE file.
+ 
 -//go:build goexperiment.boringcrypto
 +//go:build goexperiment.boringcrypto || goexperiment.opensslcrypto
  
  package hash_test
  
 diff --git a/src/hash/notboring_test.go b/src/hash/notboring_test.go
-index 79f8c22f2b7416..f3e8ed3e1cbf20 100644
+index 0f289915be6daa..bd935326bf7305 100644
 --- a/src/hash/notboring_test.go
 +++ b/src/hash/notboring_test.go
-@@ -1,4 +1,4 @@
+@@ -2,7 +2,7 @@
+ // Use of this source code is governed by a BSD-style
+ // license that can be found in the LICENSE file.
+ 
 -//go:build !goexperiment.boringcrypto
 +//go:build !goexperiment.boringcrypto && !goexperiment.opensslcrypto
  

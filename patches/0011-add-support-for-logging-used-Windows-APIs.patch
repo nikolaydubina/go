@@ -6,21 +6,21 @@ Subject: [PATCH] add support for logging used Windows APIs
 ---
  src/runtime/os_windows.go                    |   1 +
  src/runtime/syscall_windows.go               |   1 +
- src/runtime/syscalltrace_generate_windows.go |  46 +++++++
- src/runtime/syscalltrace_windows.go          | 127 +++++++++++++++++++
- src/runtime/syscalltrace_windows_test.go     |  77 +++++++++++
+ src/runtime/syscalltrace_generate_windows.go |  50 +++++++
+ src/runtime/syscalltrace_windows.go          | 131 +++++++++++++++++++
+ src/runtime/syscalltrace_windows_test.go     |  81 ++++++++++++
  src/runtime/zsyscalltrace_windows.go         |  60 +++++++++
- 6 files changed, 312 insertions(+)
+ 6 files changed, 324 insertions(+)
  create mode 100644 src/runtime/syscalltrace_generate_windows.go
  create mode 100644 src/runtime/syscalltrace_windows.go
  create mode 100644 src/runtime/syscalltrace_windows_test.go
  create mode 100644 src/runtime/zsyscalltrace_windows.go
 
 diff --git a/src/runtime/os_windows.go b/src/runtime/os_windows.go
-index 4aabc29644e6f9..fc7296f28ab12f 100644
+index 7183e79f7df093..2b382202bf7e49 100644
 --- a/src/runtime/os_windows.go
 +++ b/src/runtime/os_windows.go
-@@ -222,6 +222,7 @@ func windowsFindfunc(lib uintptr, name []byte) stdFunction {
+@@ -223,6 +223,7 @@ func windowsFindfunc(lib uintptr, name []byte) stdFunction {
  	if name[len(name)-1] != 0 {
  		throw("usage")
  	}
@@ -29,7 +29,7 @@ index 4aabc29644e6f9..fc7296f28ab12f 100644
  	return stdFunction(unsafe.Pointer(f))
  }
 diff --git a/src/runtime/syscall_windows.go b/src/runtime/syscall_windows.go
-index 69d720a395c48d..2772c019a15af2 100644
+index 85b1b8c9024a73..384be25350726e 100644
 --- a/src/runtime/syscall_windows.go
 +++ b/src/runtime/syscall_windows.go
 @@ -443,6 +443,7 @@ func syscall_loadlibrary(filename *uint16) (handle, err uintptr) {
@@ -42,10 +42,14 @@ index 69d720a395c48d..2772c019a15af2 100644
  	if outhandle != 0 {
 diff --git a/src/runtime/syscalltrace_generate_windows.go b/src/runtime/syscalltrace_generate_windows.go
 new file mode 100644
-index 00000000000000..e3bbe376f43ce9
+index 00000000000000..17fb696be88776
 --- /dev/null
 +++ b/src/runtime/syscalltrace_generate_windows.go
-@@ -0,0 +1,46 @@
+@@ -0,0 +1,50 @@
++// Copyright 2024 The Go Authors. All rights reserved.
++// Use of this source code is governed by a BSD-style
++// license that can be found in the LICENSE file.
++
 +//go:build ignore
 +
 +package main
@@ -94,10 +98,14 @@ index 00000000000000..e3bbe376f43ce9
 +}
 diff --git a/src/runtime/syscalltrace_windows.go b/src/runtime/syscalltrace_windows.go
 new file mode 100644
-index 00000000000000..15245e4414c0b8
+index 00000000000000..ed9161b797c4f9
 --- /dev/null
 +++ b/src/runtime/syscalltrace_windows.go
-@@ -0,0 +1,127 @@
+@@ -0,0 +1,131 @@
++// Copyright 2024 The Go Authors. All rights reserved.
++// Use of this source code is governed by a BSD-style
++// license that can be found in the LICENSE file.
++
 +//go:generate go run syscalltrace_generate_windows.go -output zsyscalltrace_windows.go os_windows syscalltrace_windows
 +
 +package runtime
@@ -227,10 +235,14 @@ index 00000000000000..15245e4414c0b8
 +}
 diff --git a/src/runtime/syscalltrace_windows_test.go b/src/runtime/syscalltrace_windows_test.go
 new file mode 100644
-index 00000000000000..31d1fc18bb8640
+index 00000000000000..626c5e98f7eae4
 --- /dev/null
 +++ b/src/runtime/syscalltrace_windows_test.go
-@@ -0,0 +1,77 @@
+@@ -0,0 +1,81 @@
++// Copyright 2024 The Go Authors. All rights reserved.
++// Use of this source code is governed by a BSD-style
++// license that can be found in the LICENSE file.
++
 +package runtime_test
 +
 +import (
