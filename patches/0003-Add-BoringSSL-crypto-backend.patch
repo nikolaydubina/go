@@ -5,7 +5,7 @@ Subject: [PATCH] Add BoringSSL crypto backend
 
 ---
  .../internal/backend/bbig/big_boring.go       |  12 +
- src/crypto/internal/backend/boring_linux.go   | 258 ++++++++++++++++++
+ src/crypto/internal/backend/boring_linux.go   | 257 ++++++++++++++++++
  2 files changed, 270 insertions(+)
  create mode 100644 src/crypto/internal/backend/bbig/big_boring.go
  create mode 100644 src/crypto/internal/backend/boring_linux.go
@@ -33,7 +33,7 @@ new file mode 100644
 index 00000000000000..31e57a8dffd4c3
 --- /dev/null
 +++ b/src/crypto/internal/backend/boring_linux.go
-@@ -0,0 +1,258 @@
+@@ -0,0 +1,257 @@
 +// Copyright 2017 The Go Authors. All rights reserved.
 +// Use of this source code is governed by a BSD-style
 +// license that can be found in the LICENSE file.
@@ -50,7 +50,6 @@ index 00000000000000..31e57a8dffd4c3
 +	"crypto/cipher"
 +	"crypto/internal/boring"
 +	"hash"
-+	"io"
 +)
 +
 +const Enabled = true
@@ -187,7 +186,7 @@ index 00000000000000..31e57a8dffd4c3
 +
 +func SupportsHKDF() bool { return false }
 +
-+func ExpandHKDF(h func() hash.Hash, pseudorandomKey, info []byte) (io.Reader, error) {
++func ExpandHKDF(h func() hash.Hash, pseudorandomKey, info []byte, keyLength int) ([]byte, error) {
 +	panic("cryptobackend: not available")
 +}
 +
@@ -266,7 +265,7 @@ index 00000000000000..31e57a8dffd4c3
 +	return false
 +}
 +
-+func GenerateDSAParameters(l, n int) (p, q, g boring.BigInt, err error) {
++func GenerateParametersDSA(l, n int) (p, q, g boring.BigInt, err error) {
 +	panic("cryptobackend: not available")
 +}
 +
