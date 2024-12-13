@@ -55,7 +55,7 @@ Subject: [PATCH] Add crypto backend foundation
  src/crypto/tls/handshake_server.go           |  10 +-
  src/crypto/tls/handshake_server_tls13.go     |  10 +
  src/crypto/tls/key_schedule.go               |  23 +-
- src/crypto/tls/prf.go                        |  36 ++++
+ src/crypto/tls/prf.go                        |  40 ++++
  src/crypto/x509/boring_test.go               |   5 +
  src/go/build/deps_test.go                    |   4 +
  src/hash/boring_test.go                      |   9 +
@@ -63,7 +63,7 @@ Subject: [PATCH] Add crypto backend foundation
  src/hash/notboring_test.go                   |   9 +
  src/net/smtp/smtp_test.go                    |  72 +++---
  src/runtime/runtime_boring.go                |   5 +
- 59 files changed, 1098 insertions(+), 73 deletions(-)
+ 59 files changed, 1107 insertions(+), 76 deletions(-)
  create mode 100644 src/crypto/dsa/boring.go
  create mode 100644 src/crypto/dsa/notboring.go
  create mode 100644 src/crypto/ed25519/boring.go
@@ -269,7 +269,7 @@ index 00000000000000..3be888a0104809
 +	}
 +}
 diff --git a/src/crypto/dsa/dsa.go b/src/crypto/dsa/dsa.go
-index 4524bd492feba0..19f3a125017b61 100644
+index 4524bd492feba0..ff890b1d06aea2 100644
 --- a/src/crypto/dsa/dsa.go
 +++ b/src/crypto/dsa/dsa.go
 @@ -18,7 +18,12 @@ import (
@@ -935,7 +935,7 @@ index 00000000000000..e5d7570d6d4363
 +const isRequireFIPS = true
 diff --git a/src/crypto/internal/backend/nobackend.go b/src/crypto/internal/backend/nobackend.go
 new file mode 100644
-index 00000000000000..5a1f8da56d4fed
+index 00000000000000..ffa8d38e5d490f
 --- /dev/null
 +++ b/src/crypto/internal/backend/nobackend.go
 @@ -0,0 +1,223 @@
@@ -1956,7 +1956,7 @@ index 1636baf79e7288..747c3c0883230c 100644
  }
  
 diff --git a/src/crypto/tls/prf.go b/src/crypto/tls/prf.go
-index a7fa3370e66c82..e63daa3ed9f894 100644
+index a7fa3370e66c82..d34cd41f0891db 100644
 --- a/src/crypto/tls/prf.go
 +++ b/src/crypto/tls/prf.go
 @@ -7,6 +7,7 @@ package tls
@@ -1967,7 +1967,7 @@ index a7fa3370e66c82..e63daa3ed9f894 100644
  	"crypto/md5"
  	"crypto/sha1"
  	"crypto/sha256"
-@@ -44,8 +45,37 @@ func pHash(result, secret, seed []byte, hash func() hash.Hash) {
+@@ -44,8 +45,41 @@ func pHash(result, secret, seed []byte, hash func() hash.Hash) {
  	}
  }
  
@@ -1994,24 +1994,28 @@ index a7fa3370e66c82..e63daa3ed9f894 100644
 +	return nil
 +}
 +
++func panicBoringPRFError(err error) {
++	panic(boringPRFError{err})
++}
++
  // prf10 implements the TLS 1.0 pseudo-random function, as defined in RFC 2246, Section 5.
  func prf10(result, secret, label, seed []byte) {
 +	if boring.Enabled && boring.SupportsTLS1PRF() {
 +		if err := boring.TLS1PRF(result, secret, label, seed, nil); err != nil {
-+			panic(boringPRFError{fmt.Errorf("crypto/tls: prf10: %v", err)})
++			panicBoringPRFError(fmt.Errorf("crypto/tls: prf10: %v", err))
 +		}
 +		return
 +	}
  	hashSHA1 := sha1.New
  	hashMD5 := md5.New
  
-@@ -66,6 +96,12 @@ func prf10(result, secret, label, seed []byte) {
+@@ -66,6 +100,12 @@ func prf10(result, secret, label, seed []byte) {
  // prf12 implements the TLS 1.2 pseudo-random function, as defined in RFC 5246, Section 5.
  func prf12(hashFunc func() hash.Hash) func(result, secret, label, seed []byte) {
  	return func(result, secret, label, seed []byte) {
 +		if boring.Enabled && boring.SupportsTLS1PRF() {
 +			if err := boring.TLS1PRF(result, secret, label, seed, hashFunc); err != nil {
-+				panic(boringPRFError{fmt.Errorf("crypto/tls: prf12: %v", err)})
++				panicBoringPRFError(fmt.Errorf("crypto/tls: prf12: %v", err))
 +			}
 +			return
 +		}
