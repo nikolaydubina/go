@@ -2304,7 +2304,7 @@ index 3091f7a67acede..fead8cc4bec73a 100644
  
 diff --git a/src/hash/notboring_test.go b/src/hash/notboring_test.go
 new file mode 100644
-index 00000000000000..0f289915be6daa
+index 00000000000000..11dc691600b110
 --- /dev/null
 +++ b/src/hash/notboring_test.go
 @@ -0,0 +1,9 @@
@@ -2312,7 +2312,7 @@ index 00000000000000..0f289915be6daa
 +// Use of this source code is governed by a BSD-style
 +// license that can be found in the LICENSE file.
 +
-+//go:build !goexperiment.boringcrypto
++//go:build !goexperiment.systemcrypto
 +
 +package hash_test
 +

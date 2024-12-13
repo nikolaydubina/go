@@ -15,12 +15,11 @@ Subject: [PATCH] Add OpenSSL crypto backend
  src/go.sum                                    |   2 +
  src/go/build/deps_test.go                     |   7 +-
  src/go/build/vendor_test.go                   |   1 +
- src/hash/notboring_test.go                    |   2 +-
  .../goexperiment/exp_opensslcrypto_off.go     |   9 +
  .../goexperiment/exp_opensslcrypto_on.go      |   9 +
  src/internal/goexperiment/flags.go            |   1 +
  src/os/exec/exec_test.go                      |   9 +
- 16 files changed, 436 insertions(+), 5 deletions(-)
+ 15 files changed, 435 insertions(+), 4 deletions(-)
  create mode 100644 src/crypto/internal/backend/bbig/big_openssl.go
  create mode 100644 src/crypto/internal/backend/openssl_linux.go
  create mode 100644 src/internal/goexperiment/exp_opensslcrypto_off.go
@@ -569,19 +568,6 @@ index 7f6237ffd59c11..7c821ae4bc5727 100644
  }
  
  // Verify that the vendor directories contain only packages matching the list above.
-diff --git a/src/hash/notboring_test.go b/src/hash/notboring_test.go
-index 0f289915be6daa..bd935326bf7305 100644
---- a/src/hash/notboring_test.go
-+++ b/src/hash/notboring_test.go
-@@ -2,7 +2,7 @@
- // Use of this source code is governed by a BSD-style
- // license that can be found in the LICENSE file.
- 
--//go:build !goexperiment.boringcrypto
-+//go:build !goexperiment.boringcrypto && !goexperiment.opensslcrypto
- 
- package hash_test
- 
 diff --git a/src/internal/goexperiment/exp_opensslcrypto_off.go b/src/internal/goexperiment/exp_opensslcrypto_off.go
 new file mode 100644
 index 00000000000000..62033547c6143a

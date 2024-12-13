@@ -16,11 +16,10 @@ Subject: [PATCH] Add CNG crypto backend
  src/go/build/deps_test.go                     |   5 +
  src/go/build/vendor_test.go                   |   1 +
  src/hash/example_test.go                      |   2 +
- src/hash/notboring_test.go                    |   2 +-
  .../goexperiment/exp_cngcrypto_off.go         |   9 +
  src/internal/goexperiment/exp_cngcrypto_on.go |   9 +
  src/internal/goexperiment/flags.go            |   1 +
- 16 files changed, 392 insertions(+), 7 deletions(-)
+ 15 files changed, 391 insertions(+), 6 deletions(-)
  create mode 100644 src/crypto/ecdsa/badlinkname.go
  create mode 100644 src/crypto/internal/backend/bbig/big_cng.go
  create mode 100644 src/crypto/internal/backend/cng_windows.go
@@ -532,19 +531,6 @@ index f07b9aaa2c4898..2ff6c4827391c0 100644
  package hash_test
  
  import (
-diff --git a/src/hash/notboring_test.go b/src/hash/notboring_test.go
-index bd935326bf7305..40c84700690612 100644
---- a/src/hash/notboring_test.go
-+++ b/src/hash/notboring_test.go
-@@ -2,7 +2,7 @@
- // Use of this source code is governed by a BSD-style
- // license that can be found in the LICENSE file.
- 
--//go:build !goexperiment.boringcrypto && !goexperiment.opensslcrypto
-+//go:build !goexperiment.boringcrypto && !goexperiment.opensslcrypto && !goexperiment.cngcrypto
- 
- package hash_test
- 
 diff --git a/src/internal/goexperiment/exp_cngcrypto_off.go b/src/internal/goexperiment/exp_cngcrypto_off.go
 new file mode 100644
 index 00000000000000..831460053281e2
