@@ -15,11 +15,10 @@ Subject: [PATCH] Add CNG crypto backend
  src/go.sum                                    |   2 +
  src/go/build/deps_test.go                     |   5 +
  src/go/build/vendor_test.go                   |   1 +
- src/hash/example_test.go                      |   2 +
  .../goexperiment/exp_cngcrypto_off.go         |   9 +
  src/internal/goexperiment/exp_cngcrypto_on.go |   9 +
  src/internal/goexperiment/flags.go            |   1 +
- 15 files changed, 412 insertions(+), 5 deletions(-)
+ 14 files changed, 410 insertions(+), 5 deletions(-)
  create mode 100644 src/crypto/ecdsa/badlinkname.go
  create mode 100644 src/crypto/internal/backend/bbig/big_cng.go
  create mode 100644 src/crypto/internal/backend/cng_windows.go
@@ -465,10 +464,10 @@ index 00000000000000..f769d15f94ab05
 +	return enabled != 0
 +}
 diff --git a/src/crypto/rsa/pss_test.go b/src/crypto/rsa/pss_test.go
-index e03f4ab06603c6..a9928c0c7d8259 100644
+index a4af0a2144870a..7d7115cff81cea 100644
 --- a/src/crypto/rsa/pss_test.go
 +++ b/src/crypto/rsa/pss_test.go
-@@ -241,7 +241,7 @@ func fromHex(hexStr string) []byte {
+@@ -246,7 +246,7 @@ func fromHex(hexStr string) []byte {
  
  func TestInvalidPSSSaltLength(t *testing.T) {
  	t.Setenv("GODEBUG", "rsa1024min=0")
@@ -536,19 +535,6 @@ index 7c821ae4bc5727..1d0b9b20e9b1d4 100644
  }
  
  // Verify that the vendor directories contain only packages matching the list above.
-diff --git a/src/hash/example_test.go b/src/hash/example_test.go
-index f07b9aaa2c4898..2ff6c4827391c0 100644
---- a/src/hash/example_test.go
-+++ b/src/hash/example_test.go
-@@ -2,6 +2,8 @@
- // Use of this source code is governed by a BSD-style
- // license that can be found in the LICENSE file.
- 
-+//go:build !goexperiment.cngcrypto
-+
- package hash_test
- 
- import (
 diff --git a/src/internal/goexperiment/exp_cngcrypto_off.go b/src/internal/goexperiment/exp_cngcrypto_off.go
 new file mode 100644
 index 00000000000000..831460053281e2

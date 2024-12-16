@@ -15,6 +15,7 @@ Subject: [PATCH] Add crypto backend foundation
  src/crypto/dsa/dsa.go                         |  88 +++++++
  src/crypto/dsa/notboring.go                   |  16 ++
  src/crypto/ecdh/ecdh.go                       |   2 +-
+ src/crypto/ecdh/ecdh_test.go                  |   4 +
  src/crypto/ecdh/nist.go                       |   2 +-
  src/crypto/ecdsa/boring.go                    |   6 +-
  src/crypto/ecdsa/ecdsa.go                     |   4 +-
@@ -48,6 +49,7 @@ Subject: [PATCH] Add crypto backend foundation
  src/crypto/rsa/notboring.go                   |   4 +-
  src/crypto/rsa/pkcs1v15.go                    |   6 +-
  src/crypto/rsa/pkcs1v15_test.go               |   5 +
+ src/crypto/rsa/pss_test.go                    |   5 +
  src/crypto/rsa/rsa.go                         |   4 +-
  src/crypto/rsa/rsa_test.go                    |  12 +-
  src/crypto/sha1/sha1.go                       |   2 +-
@@ -66,11 +68,12 @@ Subject: [PATCH] Add crypto backend foundation
  src/crypto/tls/prf.go                         |  41 ++++
  src/go/build/deps_test.go                     |   8 +-
  src/hash/boring_test.go                       |   9 +
+ src/hash/example_test.go                      |   2 +
  src/hash/marshal_test.go                      |   5 +
  src/hash/notboring_test.go                    |   9 +
  src/net/smtp/smtp_test.go                     |  72 ++++--
  src/runtime/runtime_boring.go                 |   5 +
- 66 files changed, 1124 insertions(+), 80 deletions(-)
+ 69 files changed, 1135 insertions(+), 80 deletions(-)
  create mode 100644 src/crypto/dsa/boring.go
  create mode 100644 src/crypto/dsa/notboring.go
  create mode 100644 src/crypto/ed25519/boring.go
@@ -493,6 +496,28 @@ index 231f1ea04c1010..cfa113e2345816 100644
  	"crypto/internal/fips140/ecdh"
  	"crypto/subtle"
  	"errors"
+diff --git a/src/crypto/ecdh/ecdh_test.go b/src/crypto/ecdh/ecdh_test.go
+index 75d2480775669f..6a4d26fbafe090 100644
+--- a/src/crypto/ecdh/ecdh_test.go
++++ b/src/crypto/ecdh/ecdh_test.go
+@@ -9,6 +9,7 @@ import (
+ 	"crypto"
+ 	"crypto/cipher"
+ 	"crypto/ecdh"
++	boring "crypto/internal/backend"
+ 	"crypto/rand"
+ 	"crypto/sha256"
+ 	"encoding/hex"
+@@ -280,6 +281,9 @@ var invalidPrivateKeys = map[ecdh.Curve][]string{
+ }
+ 
+ func TestNewPrivateKey(t *testing.T) {
++	if boring.Enabled {
++		t.Skip("skipping test with different results when using different backends")
++	}
+ 	testAllCurves(t, func(t *testing.T, curve ecdh.Curve) {
+ 		for _, input := range invalidPrivateKeys[curve] {
+ 			k, err := curve.NewPrivateKey(hexDecode(t, input))
 diff --git a/src/crypto/ecdh/nist.go b/src/crypto/ecdh/nist.go
 index acef8298943c2b..ca6171cf775117 100644
 --- a/src/crypto/ecdh/nist.go
@@ -1672,6 +1697,29 @@ index c65552cd93526a..910416abe842f5 100644
  	t.Setenv("GODEBUG", "rsa1024min=0")
  	ciphertext := decodeBase64("fjOVdirUzFoLlukv80dBllMLjXythIf22feqPrNo0YoIjzyzyoMFiLjAc/Y4krkeZ11XFThIrEvw\nkRiZcCq5ng==")
  	_, err := DecryptPKCS1v15(nil, test512Key, ciphertext)
+diff --git a/src/crypto/rsa/pss_test.go b/src/crypto/rsa/pss_test.go
+index e03f4ab06603c6..a4af0a2144870a 100644
+--- a/src/crypto/rsa/pss_test.go
++++ b/src/crypto/rsa/pss_test.go
+@@ -8,6 +8,7 @@ import (
+ 	"bufio"
+ 	"compress/bzip2"
+ 	"crypto"
++	boring "crypto/internal/backend"
+ 	"crypto/internal/fips140"
+ 	"crypto/rand"
+ 	. "crypto/rsa"
+@@ -180,6 +181,10 @@ func TestPSSSigning(t *testing.T) {
+ 			continue
+ 		}
+ 
++		if boring.Enabled && test.good != test.fipsGood {
++			t.Skip("skipping test with different results when using different backends")
++		}
++
+ 		opts.SaltLength = test.verifySaltLength
+ 		err = VerifyPSS(&rsaPrivateKey.PublicKey, hash, hashed, sig, &opts)
+ 		good := test.good
 diff --git a/src/crypto/rsa/rsa.go b/src/crypto/rsa/rsa.go
 index fb23f003a6f217..be374dad6969d5 100644
 --- a/src/crypto/rsa/rsa.go
@@ -2177,6 +2225,19 @@ index 00000000000000..52748c44698076
 +package hash_test
 +
 +const boringEnabled = true
+diff --git a/src/hash/example_test.go b/src/hash/example_test.go
+index f07b9aaa2c4898..b380537215634d 100644
+--- a/src/hash/example_test.go
++++ b/src/hash/example_test.go
+@@ -2,6 +2,8 @@
+ // Use of this source code is governed by a BSD-style
+ // license that can be found in the LICENSE file.
+ 
++//go:build !goexperiment.systemcrypto
++
+ package hash_test
+ 
+ import (
 diff --git a/src/hash/marshal_test.go b/src/hash/marshal_test.go
 index 3091f7a67acede..fead8cc4bec73a 100644
 --- a/src/hash/marshal_test.go
