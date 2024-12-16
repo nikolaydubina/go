@@ -4,18 +4,20 @@ Date: Thu, 30 Jun 2022 10:03:03 +0200
 Subject: [PATCH] Add crypto backend foundation
 
 ---
+ src/cmd/api/boring_test.go                   |   2 +-
+ src/cmd/go/go_boring_test.go                 |   2 +-
  src/crypto/aes/cipher.go                     |   2 +-
  src/crypto/aes/cipher_asm.go                 |   2 +-
- src/crypto/boring/boring.go                  |   2 +-
+ src/crypto/boring/boring.go                  |   4 +-
  src/crypto/des/cipher.go                     |   7 +
  src/crypto/dsa/boring.go                     | 113 ++++++++++
  src/crypto/dsa/dsa.go                        |  88 ++++++++
  src/crypto/dsa/notboring.go                  |  16 ++
  src/crypto/ecdh/ecdh.go                      |   2 +-
  src/crypto/ecdh/nist.go                      |   2 +-
- src/crypto/ecdsa/boring.go                   |   4 +-
+ src/crypto/ecdsa/boring.go                   |   6 +-
  src/crypto/ecdsa/ecdsa.go                    |   4 +-
- src/crypto/ecdsa/notboring.go                |   2 +-
+ src/crypto/ecdsa/notboring.go                |   4 +-
  src/crypto/ed25519/boring.go                 |  71 ++++++
  src/crypto/ed25519/ed25519.go                |  75 ++++++-
  src/crypto/ed25519/ed25519_test.go           |   2 +-
@@ -29,14 +31,17 @@ Subject: [PATCH] Add crypto backend foundation
  src/crypto/internal/backend/nobackend.go     | 223 +++++++++++++++++++
  src/crypto/internal/backend/norequirefips.go |   9 +
  src/crypto/internal/backend/stub.s           |  10 +
+ src/crypto/internal/boring/fipstls/stub.s    |   2 +-
+ src/crypto/internal/boring/fipstls/tls.go    |   2 +-
  src/crypto/md5/md5.go                        |   7 +
  src/crypto/md5/md5_test.go                   |  14 ++
  src/crypto/purego_test.go                    |   2 +-
  src/crypto/rand/rand.go                      |   2 +-
  src/crypto/rand/rand_test.go                 |   2 +-
  src/crypto/rc4/rc4.go                        |  18 ++
- src/crypto/rsa/boring.go                     |   4 +-
- src/crypto/rsa/notboring.go                  |   2 +-
+ src/crypto/rsa/boring.go                     |   6 +-
+ src/crypto/rsa/boring_test.go                |   2 +-
+ src/crypto/rsa/notboring.go                  |   4 +-
  src/crypto/rsa/pkcs1v15.go                   |  10 +-
  src/crypto/rsa/pkcs1v15_test.go              |   5 +
  src/crypto/rsa/pss.go                        |   8 +-
@@ -49,21 +54,27 @@ Subject: [PATCH] Add crypto backend foundation
  src/crypto/sha256/sha256_test.go             |  20 +-
  src/crypto/sha512/sha512.go                  |   2 +-
  src/crypto/sha512/sha512_test.go             |  20 +-
- src/crypto/tls/boring_test.go                |   5 +
+ src/crypto/tls/boring.go                     |   2 +-
+ src/crypto/tls/boring_test.go                |   7 +-
  src/crypto/tls/cipher_suites.go              |   2 +-
+ src/crypto/tls/fipsonly/fipsonly.go          |   2 +-
+ src/crypto/tls/fipsonly/fipsonly_test.go     |   2 +-
  src/crypto/tls/handshake_client.go           |  10 +-
  src/crypto/tls/handshake_server.go           |  10 +-
  src/crypto/tls/handshake_server_tls13.go     |  10 +
  src/crypto/tls/key_schedule.go               |  23 +-
+ src/crypto/tls/notboring.go                  |   2 +-
  src/crypto/tls/prf.go                        |  40 ++++
- src/crypto/x509/boring_test.go               |   5 +
+ src/crypto/x509/boring.go                    |   2 +-
+ src/crypto/x509/boring_test.go               |   7 +-
+ src/crypto/x509/notboring.go                 |   2 +-
  src/go/build/deps_test.go                    |   4 +
  src/hash/boring_test.go                      |   9 +
  src/hash/marshal_test.go                     |   5 +
  src/hash/notboring_test.go                   |   9 +
  src/net/smtp/smtp_test.go                    |  72 +++---
  src/runtime/runtime_boring.go                |   5 +
- 59 files changed, 1107 insertions(+), 76 deletions(-)
+ 70 files changed, 1125 insertions(+), 94 deletions(-)
  create mode 100644 src/crypto/dsa/boring.go
  create mode 100644 src/crypto/dsa/notboring.go
  create mode 100644 src/crypto/ed25519/boring.go
@@ -78,6 +89,32 @@ Subject: [PATCH] Add crypto backend foundation
  create mode 100644 src/hash/boring_test.go
  create mode 100644 src/hash/notboring_test.go
 
+diff --git a/src/cmd/api/boring_test.go b/src/cmd/api/boring_test.go
+index f0e3575637c62a..9eab3b4e66e60b 100644
+--- a/src/cmd/api/boring_test.go
++++ b/src/cmd/api/boring_test.go
+@@ -2,7 +2,7 @@
+ // Use of this source code is governed by a BSD-style
+ // license that can be found in the LICENSE file.
+ 
+-//go:build boringcrypto
++//go:build goexperiment.systemcrypto
+ 
+ package main
+ 
+diff --git a/src/cmd/go/go_boring_test.go b/src/cmd/go/go_boring_test.go
+index ed0fbf3d53d75b..06478963f4be44 100644
+--- a/src/cmd/go/go_boring_test.go
++++ b/src/cmd/go/go_boring_test.go
+@@ -2,7 +2,7 @@
+ // Use of this source code is governed by a BSD-style
+ // license that can be found in the LICENSE file.
+ 
+-//go:build boringcrypto
++//go:build goexperiment.systemcrypto
+ 
+ package main_test
+ 
 diff --git a/src/crypto/aes/cipher.go b/src/crypto/aes/cipher.go
 index cde2e45d2ca559..cf47a4fc57d8e2 100644
 --- a/src/crypto/aes/cipher.go
@@ -105,9 +142,18 @@ index 3e5f589c2cdd0b..e9d3c0be11ef61 100644
  	"internal/goarch"
  )
 diff --git a/src/crypto/boring/boring.go b/src/crypto/boring/boring.go
-index 097c37e343fdb8..1cf43edba40359 100644
+index 097c37e343fdb8..a5d603896d3890 100644
 --- a/src/crypto/boring/boring.go
 +++ b/src/crypto/boring/boring.go
+@@ -2,7 +2,7 @@
+ // Use of this source code is governed by a BSD-style
+ // license that can be found in the LICENSE file.
+ 
+-//go:build boringcrypto
++//go:build goexperiment.systemcrypto
+ 
+ // Package boring exposes functions that are only available when building with
+ // Go+BoringCrypto. This package is available on all targets as long as the
 @@ -13,7 +13,7 @@
  // is satisfied, so that applications can tag files that use this package.
  package boring
@@ -151,7 +197,7 @@ index 04b73e7d3bf758..0891652a4566fb 100644
  	c.cipher1.generateSubkeys(key[:8])
 diff --git a/src/crypto/dsa/boring.go b/src/crypto/dsa/boring.go
 new file mode 100644
-index 00000000000000..3be888a0104809
+index 00000000000000..7ea0c8c423e9ee
 --- /dev/null
 +++ b/src/crypto/dsa/boring.go
 @@ -0,0 +1,113 @@
@@ -159,7 +205,7 @@ index 00000000000000..3be888a0104809
 +// Use of this source code is governed by a BSD-style
 +// license that can be found in the LICENSE file.
 +
-+//go:build boringcrypto || goexperiment.opensslcrypto || goexperiment.cngcrypto
++//go:build goexperiment.systemcrypto
 +
 +package dsa
 +
@@ -402,7 +448,7 @@ index 4524bd492feba0..ff890b1d06aea2 100644
 +}
 diff --git a/src/crypto/dsa/notboring.go b/src/crypto/dsa/notboring.go
 new file mode 100644
-index 00000000000000..f8771d0189f990
+index 00000000000000..cd02ff5a00c3dc
 --- /dev/null
 +++ b/src/crypto/dsa/notboring.go
 @@ -0,0 +1,16 @@
@@ -410,7 +456,7 @@ index 00000000000000..f8771d0189f990
 +// Use of this source code is governed by a BSD-style
 +// license that can be found in the LICENSE file.
 +
-+//go:build !boringcrypto && !goexperiment.opensslcrypto && !goexperiment.cngcrypto
++//go:build !goexperiment.systemcrypto
 +
 +package dsa
 +
@@ -449,10 +495,16 @@ index b91e8f38a5a78e..2bb8f3486c8249 100644
  	"crypto/internal/randutil"
  	"errors"
 diff --git a/src/crypto/ecdsa/boring.go b/src/crypto/ecdsa/boring.go
-index 275c60b4de49eb..61e70f981db4eb 100644
+index 275c60b4de49eb..ff8bddf28c4545 100644
 --- a/src/crypto/ecdsa/boring.go
 +++ b/src/crypto/ecdsa/boring.go
-@@ -7,8 +7,8 @@
+@@ -2,13 +2,13 @@
+ // Use of this source code is governed by a BSD-style
+ // license that can be found in the LICENSE file.
+ 
+-//go:build boringcrypto
++//go:build goexperiment.systemcrypto
+ 
  package ecdsa
  
  import (
@@ -480,10 +532,15 @@ index 2179b01e8e3db5..9eb763cecfe687 100644
  	"crypto/internal/randutil"
  	"crypto/sha512"
 diff --git a/src/crypto/ecdsa/notboring.go b/src/crypto/ecdsa/notboring.go
-index 039bd82ed21f9f..19188518e85e65 100644
+index 039bd82ed21f9f..69a97d9bf250be 100644
 --- a/src/crypto/ecdsa/notboring.go
 +++ b/src/crypto/ecdsa/notboring.go
-@@ -6,7 +6,7 @@
+@@ -2,11 +2,11 @@
+ // Use of this source code is governed by a BSD-style
+ // license that can be found in the LICENSE file.
+ 
+-//go:build !boringcrypto
++//go:build !goexperiment.systemcrypto
  
  package ecdsa
  
@@ -799,7 +856,7 @@ index 00000000000000..c2c06d3bff8c74
 +}
 diff --git a/src/crypto/internal/backend/bbig/big.go b/src/crypto/internal/backend/bbig/big.go
 new file mode 100644
-index 00000000000000..85bd3ed083f5b2
+index 00000000000000..20251a290dc2e0
 --- /dev/null
 +++ b/src/crypto/internal/backend/bbig/big.go
 @@ -0,0 +1,17 @@
@@ -807,7 +864,7 @@ index 00000000000000..85bd3ed083f5b2
 +// Use of this source code is governed by a BSD-style
 +// license that can be found in the LICENSE file.
 +
-+//go:build !boringcrypto
++//go:build !goexperiment.systemcrypto
 +
 +package bbig
 +
@@ -1193,6 +1250,32 @@ index 00000000000000..5e4b436554d44d
 +// Having this assembly file keeps the go command
 +// from complaining about the missing body
 +// (because the implementation might be here).
+diff --git a/src/crypto/internal/boring/fipstls/stub.s b/src/crypto/internal/boring/fipstls/stub.s
+index f2e5a503eaacb6..35cf7532625efb 100644
+--- a/src/crypto/internal/boring/fipstls/stub.s
++++ b/src/crypto/internal/boring/fipstls/stub.s
+@@ -2,7 +2,7 @@
+ // Use of this source code is governed by a BSD-style
+ // license that can be found in the LICENSE file.
+ 
+-//go:build boringcrypto
++//go:build goexperiment.systemcrypto
+ 
+ // runtime_arg0 is declared in tls.go without a body.
+ // It's provided by package runtime,
+diff --git a/src/crypto/internal/boring/fipstls/tls.go b/src/crypto/internal/boring/fipstls/tls.go
+index b51f142fde8311..0ea6593743349b 100644
+--- a/src/crypto/internal/boring/fipstls/tls.go
++++ b/src/crypto/internal/boring/fipstls/tls.go
+@@ -2,7 +2,7 @@
+ // Use of this source code is governed by a BSD-style
+ // license that can be found in the LICENSE file.
+ 
+-//go:build boringcrypto
++//go:build goexperiment.systemcrypto
+ 
+ // Package fipstls allows control over whether crypto/tls requires FIPS-approved settings.
+ // This package only exists with GOEXPERIMENT=boringcrypto, but the effects are independent
 diff --git a/src/crypto/md5/md5.go b/src/crypto/md5/md5.go
 index c984c3f4968598..229dd457f8d53c 100644
 --- a/src/crypto/md5/md5.go
@@ -1368,10 +1451,16 @@ index 67452ec39f0fd4..47726d0ebe38d9 100644
  		return
  	}
 diff --git a/src/crypto/rsa/boring.go b/src/crypto/rsa/boring.go
-index b9f9d3154f2589..ecb43aaf264743 100644
+index b9f9d3154f2589..d52faddef45549 100644
 --- a/src/crypto/rsa/boring.go
 +++ b/src/crypto/rsa/boring.go
-@@ -7,8 +7,8 @@
+@@ -2,13 +2,13 @@
+ // Use of this source code is governed by a BSD-style
+ // license that can be found in the LICENSE file.
+ 
+-//go:build boringcrypto
++//go:build goexperiment.systemcrypto
+ 
  package rsa
  
  import (
@@ -1382,11 +1471,29 @@ index b9f9d3154f2589..ecb43aaf264743 100644
  	"crypto/internal/boring/bcache"
  	"math/big"
  )
+diff --git a/src/crypto/rsa/boring_test.go b/src/crypto/rsa/boring_test.go
+index 2234d079f0d9e7..94ce18b2338416 100644
+--- a/src/crypto/rsa/boring_test.go
++++ b/src/crypto/rsa/boring_test.go
+@@ -2,7 +2,7 @@
+ // Use of this source code is governed by a BSD-style
+ // license that can be found in the LICENSE file.
+ 
+-//go:build boringcrypto
++//go:build goexperiment.systemcrypto
+ 
+ // Note: Can run these tests against the non-BoringCrypto
+ // version of the code by using "CGO_ENABLED=0 go test".
 diff --git a/src/crypto/rsa/notboring.go b/src/crypto/rsa/notboring.go
-index 2abc0436405f8a..34c22c8fbba7da 100644
+index 2abc0436405f8a..3e4d6f3eef61e6 100644
 --- a/src/crypto/rsa/notboring.go
 +++ b/src/crypto/rsa/notboring.go
-@@ -6,7 +6,7 @@
+@@ -2,11 +2,11 @@
+ // Use of this source code is governed by a BSD-style
+ // license that can be found in the LICENSE file.
+ 
+-//go:build !boringcrypto
++//go:build !goexperiment.systemcrypto
  
  package rsa
  
@@ -1815,10 +1922,32 @@ index fdad37b1863ae8..cf6e4c395cd4fb 100644
  	for i, test := range largeUnmarshalTests {
  
  		h := New()
+diff --git a/src/crypto/tls/boring.go b/src/crypto/tls/boring.go
+index c44ae92f2528f3..ddfec0c438265e 100644
+--- a/src/crypto/tls/boring.go
++++ b/src/crypto/tls/boring.go
+@@ -2,7 +2,7 @@
+ // Use of this source code is governed by a BSD-style
+ // license that can be found in the LICENSE file.
+ 
+-//go:build boringcrypto
++//go:build goexperiment.systemcrypto
+ 
+ package tls
+ 
 diff --git a/src/crypto/tls/boring_test.go b/src/crypto/tls/boring_test.go
-index 56050421985927..dcbd33167e4499 100644
+index 56050421985927..863ad8d1faf810 100644
 --- a/src/crypto/tls/boring_test.go
 +++ b/src/crypto/tls/boring_test.go
+@@ -2,7 +2,7 @@
+ // Use of this source code is governed by a BSD-style
+ // license that can be found in the LICENSE file.
+ 
+-//go:build boringcrypto
++//go:build goexperiment.systemcrypto
+ 
+ package tls
+ 
 @@ -25,6 +25,11 @@ import (
  	"time"
  )
@@ -1844,6 +1973,32 @@ index 917a1eff42d34f..f6f57130b64f41 100644
  	"crypto/rc4"
  	"crypto/sha1"
  	"crypto/sha256"
+diff --git a/src/crypto/tls/fipsonly/fipsonly.go b/src/crypto/tls/fipsonly/fipsonly.go
+index e5e47835e2f48d..7dccbc7c3d748a 100644
+--- a/src/crypto/tls/fipsonly/fipsonly.go
++++ b/src/crypto/tls/fipsonly/fipsonly.go
+@@ -2,7 +2,7 @@
+ // Use of this source code is governed by a BSD-style
+ // license that can be found in the LICENSE file.
+ 
+-//go:build boringcrypto
++//go:build goexperiment.systemcrypto
+ 
+ // Package fipsonly restricts all TLS configuration to FIPS-approved settings.
+ //
+diff --git a/src/crypto/tls/fipsonly/fipsonly_test.go b/src/crypto/tls/fipsonly/fipsonly_test.go
+index f8485dc3ca1c29..d4915031340480 100644
+--- a/src/crypto/tls/fipsonly/fipsonly_test.go
++++ b/src/crypto/tls/fipsonly/fipsonly_test.go
+@@ -2,7 +2,7 @@
+ // Use of this source code is governed by a BSD-style
+ // license that can be found in the LICENSE file.
+ 
+-//go:build boringcrypto
++//go:build goexperiment.systemcrypto
+ 
+ package fipsonly
+ 
 diff --git a/src/crypto/tls/handshake_client.go b/src/crypto/tls/handshake_client.go
 index 760e827f467f15..393c59ba8f1183 100644
 --- a/src/crypto/tls/handshake_client.go
@@ -1955,6 +2110,19 @@ index 1636baf79e7288..747c3c0883230c 100644
  	return hkdf.Extract(c.hash.New, newSecret, currentSecret)
  }
  
+diff --git a/src/crypto/tls/notboring.go b/src/crypto/tls/notboring.go
+index bdbc32e05b35dd..3bfe4096471910 100644
+--- a/src/crypto/tls/notboring.go
++++ b/src/crypto/tls/notboring.go
+@@ -2,7 +2,7 @@
+ // Use of this source code is governed by a BSD-style
+ // license that can be found in the LICENSE file.
+ 
+-//go:build !boringcrypto
++//go:build !goexperiment.systemcrypto
+ 
+ package tls
+ 
 diff --git a/src/crypto/tls/prf.go b/src/crypto/tls/prf.go
 index a7fa3370e66c82..d34cd41f0891db 100644
 --- a/src/crypto/tls/prf.go
@@ -2022,10 +2190,32 @@ index a7fa3370e66c82..d34cd41f0891db 100644
  		labelAndSeed := make([]byte, len(label)+len(seed))
  		copy(labelAndSeed, label)
  		copy(labelAndSeed[len(label):], seed)
+diff --git a/src/crypto/x509/boring.go b/src/crypto/x509/boring.go
+index 095b58c31590d4..6b32417ea85657 100644
+--- a/src/crypto/x509/boring.go
++++ b/src/crypto/x509/boring.go
+@@ -2,7 +2,7 @@
+ // Use of this source code is governed by a BSD-style
+ // license that can be found in the LICENSE file.
+ 
+-//go:build boringcrypto
++//go:build goexperiment.systemcrypto
+ 
+ package x509
+ 
 diff --git a/src/crypto/x509/boring_test.go b/src/crypto/x509/boring_test.go
-index 319ac61f49c994..1b2454dbaab264 100644
+index 319ac61f49c994..b5f52252fb3e37 100644
 --- a/src/crypto/x509/boring_test.go
 +++ b/src/crypto/x509/boring_test.go
+@@ -2,7 +2,7 @@
+ // Use of this source code is governed by a BSD-style
+ // license that can be found in the LICENSE file.
+ 
+-//go:build boringcrypto
++//go:build goexperiment.systemcrypto
+ 
+ package x509
+ 
 @@ -26,6 +26,11 @@ const (
  	boringCertFIPSOK = 0x80
  )
@@ -2038,6 +2228,19 @@ index 319ac61f49c994..1b2454dbaab264 100644
  func boringRSAKey(t *testing.T, size int) *rsa.PrivateKey {
  	t.Helper()
  	k, err := rsa.GenerateKey(rand.Reader, size)
+diff --git a/src/crypto/x509/notboring.go b/src/crypto/x509/notboring.go
+index c83a7272c9f01f..7f6e574dc0c2dc 100644
+--- a/src/crypto/x509/notboring.go
++++ b/src/crypto/x509/notboring.go
+@@ -2,7 +2,7 @@
+ // Use of this source code is governed by a BSD-style
+ // license that can be found in the LICENSE file.
+ 
+-//go:build !boringcrypto
++//go:build !goexperiment.systemcrypto
+ 
+ package x509
+ 
 diff --git a/src/go/build/deps_test.go b/src/go/build/deps_test.go
 index c6a2518f62ff3a..578b4d6f68504c 100644
 --- a/src/go/build/deps_test.go
@@ -2070,7 +2273,7 @@ index c6a2518f62ff3a..578b4d6f68504c 100644
  	< crypto/ed25519
 diff --git a/src/hash/boring_test.go b/src/hash/boring_test.go
 new file mode 100644
-index 00000000000000..b4cb21f3580737
+index 00000000000000..52748c44698076
 --- /dev/null
 +++ b/src/hash/boring_test.go
 @@ -0,0 +1,9 @@
@@ -2078,7 +2281,7 @@ index 00000000000000..b4cb21f3580737
 +// Use of this source code is governed by a BSD-style
 +// license that can be found in the LICENSE file.
 +
-+//go:build goexperiment.boringcrypto
++//go:build goexperiment.systemcrypto
 +
 +package hash_test
 +
@@ -2101,7 +2304,7 @@ index 3091f7a67acede..fead8cc4bec73a 100644
  
 diff --git a/src/hash/notboring_test.go b/src/hash/notboring_test.go
 new file mode 100644
-index 00000000000000..0f289915be6daa
+index 00000000000000..11dc691600b110
 --- /dev/null
 +++ b/src/hash/notboring_test.go
 @@ -0,0 +1,9 @@
@@ -2109,7 +2312,7 @@ index 00000000000000..0f289915be6daa
 +// Use of this source code is governed by a BSD-style
 +// license that can be found in the LICENSE file.
 +
-+//go:build !goexperiment.boringcrypto
++//go:build !goexperiment.systemcrypto
 +
 +package hash_test
 +
