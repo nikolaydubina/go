@@ -37,29 +37,29 @@ Submitting upgrades directly upstream would avoid
 this issue, but it would be hard to justify these
 unnecessary upgrades.
 ---
- src/crypto/internal/bigmod/_asm/{go.mod => no.mod}             | 0
- src/crypto/internal/bigmod/_asm/{go.sum => no.sum}             | 0
- src/crypto/internal/edwards25519/field/_asm/{go.mod => no.mod} | 0
- src/crypto/internal/edwards25519/field/_asm/{go.sum => no.sum} | 0
+ src/crypto/internal/fips140/bigmod/_asm/{go.mod => no.mod}        | 0
+ src/crypto/internal/fips140/bigmod/_asm/{go.sum => no.sum}        | 0
+ .../internal/fips140/edwards25519/field/_asm/{go.mod => no.mod}   | 0
+ .../internal/fips140/edwards25519/field/_asm/{go.sum => no.sum}   | 0
  4 files changed, 0 insertions(+), 0 deletions(-)
- rename src/crypto/internal/bigmod/_asm/{go.mod => no.mod} (100%)
- rename src/crypto/internal/bigmod/_asm/{go.sum => no.sum} (100%)
- rename src/crypto/internal/edwards25519/field/_asm/{go.mod => no.mod} (100%)
- rename src/crypto/internal/edwards25519/field/_asm/{go.sum => no.sum} (100%)
+ rename src/crypto/internal/fips140/bigmod/_asm/{go.mod => no.mod} (100%)
+ rename src/crypto/internal/fips140/bigmod/_asm/{go.sum => no.sum} (100%)
+ rename src/crypto/internal/fips140/edwards25519/field/_asm/{go.mod => no.mod} (100%)
+ rename src/crypto/internal/fips140/edwards25519/field/_asm/{go.sum => no.sum} (100%)
 
-diff --git a/src/crypto/internal/bigmod/_asm/go.mod b/src/crypto/internal/bigmod/_asm/no.mod
+diff --git a/src/crypto/internal/fips140/bigmod/_asm/go.mod b/src/crypto/internal/fips140/bigmod/_asm/no.mod
 similarity index 100%
-rename from src/crypto/internal/bigmod/_asm/go.mod
-rename to src/crypto/internal/bigmod/_asm/no.mod
-diff --git a/src/crypto/internal/bigmod/_asm/go.sum b/src/crypto/internal/bigmod/_asm/no.sum
+rename from src/crypto/internal/fips140/bigmod/_asm/go.mod
+rename to src/crypto/internal/fips140/bigmod/_asm/no.mod
+diff --git a/src/crypto/internal/fips140/bigmod/_asm/go.sum b/src/crypto/internal/fips140/bigmod/_asm/no.sum
 similarity index 100%
-rename from src/crypto/internal/bigmod/_asm/go.sum
-rename to src/crypto/internal/bigmod/_asm/no.sum
-diff --git a/src/crypto/internal/edwards25519/field/_asm/go.mod b/src/crypto/internal/edwards25519/field/_asm/no.mod
+rename from src/crypto/internal/fips140/bigmod/_asm/go.sum
+rename to src/crypto/internal/fips140/bigmod/_asm/no.sum
+diff --git a/src/crypto/internal/fips140/edwards25519/field/_asm/go.mod b/src/crypto/internal/fips140/edwards25519/field/_asm/no.mod
 similarity index 100%
-rename from src/crypto/internal/edwards25519/field/_asm/go.mod
-rename to src/crypto/internal/edwards25519/field/_asm/no.mod
-diff --git a/src/crypto/internal/edwards25519/field/_asm/go.sum b/src/crypto/internal/edwards25519/field/_asm/no.sum
+rename from src/crypto/internal/fips140/edwards25519/field/_asm/go.mod
+rename to src/crypto/internal/fips140/edwards25519/field/_asm/no.mod
+diff --git a/src/crypto/internal/fips140/edwards25519/field/_asm/go.sum b/src/crypto/internal/fips140/edwards25519/field/_asm/no.sum
 similarity index 100%
-rename from src/crypto/internal/edwards25519/field/_asm/go.sum
-rename to src/crypto/internal/edwards25519/field/_asm/no.sum
+rename from src/crypto/internal/fips140/edwards25519/field/_asm/go.sum
+rename to src/crypto/internal/fips140/edwards25519/field/_asm/no.sum
