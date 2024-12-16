@@ -9,7 +9,7 @@ Subject: [PATCH] Add CNG crypto backend
  src/crypto/internal/backend/bbig/big_cng.go   |  12 +
  src/crypto/internal/backend/cng_windows.go    | 310 ++++++++++++++++++
  src/crypto/internal/backend/common.go         |  13 +-
- src/crypto/internal/backend/fips140/cng.go    |  30 ++
+ src/crypto/internal/backend/fips140/cng.go    |  33 ++
  src/crypto/internal/boring/fipstls/stub.s     |   2 +-
  src/crypto/internal/boring/fipstls/tls.go     |   2 +-
  src/crypto/rsa/pss.go                         |   2 +-
@@ -22,7 +22,7 @@ Subject: [PATCH] Add CNG crypto backend
  .../goexperiment/exp_cngcrypto_off.go         |   9 +
  src/internal/goexperiment/exp_cngcrypto_on.go |   9 +
  src/internal/goexperiment/flags.go            |   1 +
- 16 files changed, 417 insertions(+), 6 deletions(-)
+ 17 files changed, 417 insertions(+), 6 deletions(-)
  create mode 100644 src/crypto/ecdsa/badlinkname.go
  create mode 100644 src/crypto/internal/backend/bbig/big_cng.go
  create mode 100644 src/crypto/internal/backend/cng_windows.go
@@ -88,7 +88,7 @@ index 00000000000000..92623031fd87d0
 +var Dec = bbig.Dec
 diff --git a/src/crypto/internal/backend/cng_windows.go b/src/crypto/internal/backend/cng_windows.go
 new file mode 100644
-index 00000000000000..7fb68218e56e9f
+index 00000000000000..2d7a18eaec2e23
 --- /dev/null
 +++ b/src/crypto/internal/backend/cng_windows.go
 @@ -0,0 +1,310 @@
@@ -432,10 +432,10 @@ index 07d965bf8b467c..91223c0ef0f810 100644
 +}
 diff --git a/src/crypto/internal/backend/fips140/cng.go b/src/crypto/internal/backend/fips140/cng.go
 new file mode 100644
-index 00000000000000..22e4197bbb3ba5
+index 00000000000000..f769d15f94ab05
 --- /dev/null
 +++ b/src/crypto/internal/backend/fips140/cng.go
-@@ -0,0 +1,30 @@
+@@ -0,0 +1,33 @@
 +// Copyright 2024 The Go Authors. All rights reserved.
 +// Use of this source code is governed by a BSD-style
 +// license that can be found in the LICENSE file.
@@ -463,7 +463,10 @@ index 00000000000000..22e4197bbb3ba5
 +
 +func systemFIPSMode() bool {
 +	var enabled uint32
-+	bcryptGetFipsAlgorithmMode.Call(uintptr(unsafe.Pointer(&enabled)))
++	ret, _, _ := bcryptGetFipsAlgorithmMode.Call(uintptr(unsafe.Pointer(&enabled)))
++	if ret != 0 {
++		return false
++	}
 +	return enabled != 0
 +}
 diff --git a/src/crypto/rsa/pss.go b/src/crypto/rsa/pss.go
