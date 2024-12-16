@@ -6,9 +6,11 @@ Subject: [PATCH] Add BoringSSL crypto backend
 ---
  .../internal/backend/bbig/big_boring.go       |  12 +
  src/crypto/internal/backend/boring_linux.go   | 257 ++++++++++++++++++
- 2 files changed, 270 insertions(+)
+ src/crypto/internal/backend/fips140/boring.go |  11 +
+ 3 files changed, 281 insertions(+)
  create mode 100644 src/crypto/internal/backend/bbig/big_boring.go
  create mode 100644 src/crypto/internal/backend/boring_linux.go
+ create mode 100644 src/crypto/internal/backend/fips140/boring.go
 
 diff --git a/src/crypto/internal/backend/bbig/big_boring.go b/src/crypto/internal/backend/bbig/big_boring.go
 new file mode 100644
@@ -290,4 +292,21 @@ index 00000000000000..31e57a8dffd4c3
 +
 +func VerifyDSA(pub *PublicKeyDSA, hashed []byte, r, s boring.BigInt, encodeSignature func(r, s boring.BigInt) ([]byte, error)) bool {
 +	panic("cryptobackend: not available")
++}
+diff --git a/src/crypto/internal/backend/fips140/boring.go b/src/crypto/internal/backend/fips140/boring.go
+new file mode 100644
+index 00000000000000..3b583dc0eb0235
+--- /dev/null
++++ b/src/crypto/internal/backend/fips140/boring.go
+@@ -0,0 +1,11 @@
++// Copyright 2024 The Go Authors. All rights reserved.
++// Use of this source code is governed by a BSD-style
++// license that can be found in the LICENSE file.
++
++//go:build goexperiment.boringcrypto
++
++package fips140
++
++func systemFIPSMode() bool {
++	return false
 +}

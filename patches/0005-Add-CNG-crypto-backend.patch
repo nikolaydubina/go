@@ -7,8 +7,11 @@ Subject: [PATCH] Add CNG crypto backend
  src/crypto/ecdsa/badlinkname.go               |  17 +
  src/crypto/internal/backend/backend_test.go   |   4 +-
  src/crypto/internal/backend/bbig/big_cng.go   |  12 +
- src/crypto/internal/backend/cng_windows.go    | 317 ++++++++++++++++++
+ src/crypto/internal/backend/cng_windows.go    | 310 ++++++++++++++++++
  src/crypto/internal/backend/common.go         |  13 +-
+ src/crypto/internal/backend/fips140/cng.go    |  33 ++
+ src/crypto/internal/boring/fipstls/stub.s     |   2 +-
+ src/crypto/internal/boring/fipstls/tls.go     |   2 +-
  src/crypto/rsa/pss.go                         |   2 +-
  src/crypto/rsa/pss_test.go                    |   2 +-
  src/go.mod                                    |   1 +
@@ -19,10 +22,11 @@ Subject: [PATCH] Add CNG crypto backend
  .../goexperiment/exp_cngcrypto_off.go         |   9 +
  src/internal/goexperiment/exp_cngcrypto_on.go |   9 +
  src/internal/goexperiment/flags.go            |   1 +
- 15 files changed, 391 insertions(+), 6 deletions(-)
+ 17 files changed, 417 insertions(+), 6 deletions(-)
  create mode 100644 src/crypto/ecdsa/badlinkname.go
  create mode 100644 src/crypto/internal/backend/bbig/big_cng.go
  create mode 100644 src/crypto/internal/backend/cng_windows.go
+ create mode 100644 src/crypto/internal/backend/fips140/cng.go
  create mode 100644 src/internal/goexperiment/exp_cngcrypto_off.go
  create mode 100644 src/internal/goexperiment/exp_cngcrypto_on.go
 
@@ -84,10 +88,10 @@ index 00000000000000..92623031fd87d0
 +var Dec = bbig.Dec
 diff --git a/src/crypto/internal/backend/cng_windows.go b/src/crypto/internal/backend/cng_windows.go
 new file mode 100644
-index 00000000000000..543b5ed1b5d15c
+index 00000000000000..2d7a18eaec2e23
 --- /dev/null
 +++ b/src/crypto/internal/backend/cng_windows.go
-@@ -0,0 +1,317 @@
+@@ -0,0 +1,310 @@
 +// Copyright 2017 The Go Authors. All rights reserved.
 +// Use of this source code is governed by a BSD-style
 +// license that can be found in the LICENSE file.
@@ -102,7 +106,7 @@ index 00000000000000..543b5ed1b5d15c
 +import (
 +	"crypto"
 +	"crypto/cipher"
-+	"crypto/internal/boring/fipstls"
++	"crypto/internal/backend/fips140"
 +	"crypto/internal/boring/sig"
 +	"hash"
 +	_ "unsafe"
@@ -116,9 +120,7 @@ index 00000000000000..543b5ed1b5d15c
 +type BigInt = cng.BigInt
 +
 +func init() {
-+	// 1: FIPS required: abort the process if the system is not in FIPS mode.
-+	// other values: continue regardless of system-configured FIPS mode.
-+	if v, _, ok := envGoFIPS(); ok && v == "1" {
++	if fips140.Enabled() {
 +		enabled, err := cng.FIPS()
 +		if err != nil {
 +			panic("cngcrypto: unknown FIPS mode: " + err.Error())
@@ -126,11 +128,6 @@ index 00000000000000..543b5ed1b5d15c
 +		if !enabled {
 +			panic("cngcrypto: not in FIPS mode")
 +		}
-+	}
-+	if enabled, _ := cng.FIPS(); enabled {
-+		// FIPS mode is enabled,
-+		// so force FIPS mode for crypto/tls and crypto/x509.
-+		fipstls.Force()
 +	}
 +	sig.BoringCrypto()
 +}
@@ -406,10 +403,10 @@ index 00000000000000..543b5ed1b5d15c
 +	return cng.VerifyDSA(pub, hashed, r, s)
 +}
 diff --git a/src/crypto/internal/backend/common.go b/src/crypto/internal/backend/common.go
-index bc595e91024f11..7766d674f5cfaf 100644
+index 07d965bf8b467c..91223c0ef0f810 100644
 --- a/src/crypto/internal/backend/common.go
 +++ b/src/crypto/internal/backend/common.go
-@@ -68,7 +68,11 @@ func hasSuffix(s, t string) bool {
+@@ -44,7 +44,11 @@ func hasSuffix(s, t string) bool {
  // UnreachableExceptTests marks code that should be unreachable
  // when backend is in use. It panics.
  func UnreachableExceptTests() {
@@ -422,7 +419,7 @@ index bc595e91024f11..7766d674f5cfaf 100644
  		name := runtime_arg0()
  		// If ran on Windows we'd need to allow _test.exe and .test.exe as well.
  		if !hasSuffix(name, "_test") && !hasSuffix(name, ".test") {
-@@ -90,3 +94,10 @@ func IsRSAKeySupported(primes int) bool {
+@@ -66,3 +70,10 @@ func IsRSAKeySupported(primes int) bool {
  	// Given the above reasons, we only support 2-prime RSA keys.
  	return primes == 2
  }
@@ -432,6 +429,45 @@ index bc595e91024f11..7766d674f5cfaf 100644
 +		return salt != 0 // rsa.PSSSaltLengthAuto
 +	}
 +	return true
++}
+diff --git a/src/crypto/internal/backend/fips140/cng.go b/src/crypto/internal/backend/fips140/cng.go
+new file mode 100644
+index 00000000000000..f769d15f94ab05
+--- /dev/null
++++ b/src/crypto/internal/backend/fips140/cng.go
+@@ -0,0 +1,33 @@
++// Copyright 2024 The Go Authors. All rights reserved.
++// Use of this source code is governed by a BSD-style
++// license that can be found in the LICENSE file.
++
++//go:build goexperiment.cngcrypto
++
++package fips140
++
++import (
++	"internal/syscall/windows/sysdll"
++	"syscall"
++	"unsafe"
++)
++
++// Don't use github.com/microsoft/go-crypto-winnative here.
++// The fips140 package should have minimal dependencies.
++// Also, don't directly query the system FIPS mode from the registry,
++// there are some no-longer documented legacy entries that can enable FIPS mode,
++// and BCryptGetFipsAlgorithmMode supports them all.
++var (
++	bcrypt = syscall.MustLoadDLL(sysdll.Add("bcrypt.dll"))
++
++	bcryptGetFipsAlgorithmMode = bcrypt.MustFindProc("BCryptGetFipsAlgorithmMode")
++)
++
++func systemFIPSMode() bool {
++	var enabled uint32
++	ret, _, _ := bcryptGetFipsAlgorithmMode.Call(uintptr(unsafe.Pointer(&enabled)))
++	if ret != 0 {
++		return false
++	}
++	return enabled != 0
 +}
 diff --git a/src/crypto/rsa/pss.go b/src/crypto/rsa/pss.go
 index 4aac87d7952081..010ee1467501c3 100644
@@ -484,13 +520,13 @@ index fd8881e46df76e..1d0d5a1b7845bb 100644
  golang.org/x/crypto v0.25.1-0.20240722173533-bb80217080b0/go.mod h1:T+wALwcMOSE0kXgUAnPAHqTLW+XHgcELELW8VaDgm/M=
  golang.org/x/net v0.27.1-0.20240722181819-765c7e89b3bd h1:pHzwejE8Zkb94bG4nA+fUeskKPFp1HPldrhv62dabro=
 diff --git a/src/go/build/deps_test.go b/src/go/build/deps_test.go
-index 80a14d54739524..74e0606b0ac903 100644
+index 6504a23ce5d51f..3b30b0dc249a94 100644
 --- a/src/go/build/deps_test.go
 +++ b/src/go/build/deps_test.go
-@@ -476,6 +476,10 @@ var depsRules = `
- 
+@@ -481,6 +481,10 @@ var depsRules = `
  	crypto/cipher,
- 	crypto/internal/boring/bcache
+ 	crypto/internal/boring/bcache,
+ 	crypto/internal/backend/fips140
 +	< github.com/microsoft/go-crypto-winnative/internal/subtle
 +	< github.com/microsoft/go-crypto-winnative/internal/sysdll
 +	< github.com/microsoft/go-crypto-winnative/internal/bcrypt
@@ -498,7 +534,7 @@ index 80a14d54739524..74e0606b0ac903 100644
  	< github.com/golang-fips/openssl/v2/internal/subtle
  	< github.com/golang-fips/openssl/v2
  	< crypto/internal/boring
-@@ -516,6 +520,7 @@ var depsRules = `
+@@ -521,6 +525,7 @@ var depsRules = `
  
  	# CRYPTO-MATH is core bignum-based crypto - no cgo, net; fmt now ok.
  	CRYPTO, FMT, math/big
