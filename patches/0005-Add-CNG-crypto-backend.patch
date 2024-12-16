@@ -8,21 +8,17 @@ Subject: [PATCH] Add CNG crypto backend
  src/crypto/internal/backend/backend_test.go   |   4 +-
  src/crypto/internal/backend/bbig/big_cng.go   |  12 +
  src/crypto/internal/backend/cng_windows.go    | 310 ++++++++++++++++++
- src/crypto/internal/backend/common.go         |  13 +-
+ src/crypto/internal/backend/common.go         |   9 +-
  src/crypto/internal/backend/fips140/cng.go    |  33 ++
- src/crypto/internal/boring/fipstls/stub.s     |   2 +-
- src/crypto/internal/boring/fipstls/tls.go     |   2 +-
- src/crypto/rsa/pss.go                         |   2 +-
  src/crypto/rsa/pss_test.go                    |   2 +-
  src/go.mod                                    |   1 +
  src/go.sum                                    |   2 +
  src/go/build/deps_test.go                     |   5 +
  src/go/build/vendor_test.go                   |   1 +
- src/hash/example_test.go                      |   2 +
  .../goexperiment/exp_cngcrypto_off.go         |   9 +
  src/internal/goexperiment/exp_cngcrypto_on.go |   9 +
  src/internal/goexperiment/flags.go            |   1 +
- 17 files changed, 417 insertions(+), 6 deletions(-)
+ 14 files changed, 410 insertions(+), 5 deletions(-)
  create mode 100644 src/crypto/ecdsa/badlinkname.go
  create mode 100644 src/crypto/internal/backend/bbig/big_cng.go
  create mode 100644 src/crypto/internal/backend/cng_windows.go
@@ -403,7 +399,7 @@ index 00000000000000..2d7a18eaec2e23
 +	return cng.VerifyDSA(pub, hashed, r, s)
 +}
 diff --git a/src/crypto/internal/backend/common.go b/src/crypto/internal/backend/common.go
-index 07d965bf8b467c..91223c0ef0f810 100644
+index 858e76e3c51c06..91223c0ef0f810 100644
 --- a/src/crypto/internal/backend/common.go
 +++ b/src/crypto/internal/backend/common.go
 @@ -44,7 +44,11 @@ func hasSuffix(s, t string) bool {
@@ -419,17 +415,15 @@ index 07d965bf8b467c..91223c0ef0f810 100644
  		name := runtime_arg0()
  		// If ran on Windows we'd need to allow _test.exe and .test.exe as well.
  		if !hasSuffix(name, "_test") && !hasSuffix(name, ".test") {
-@@ -66,3 +70,10 @@ func IsRSAKeySupported(primes int) bool {
- 	// Given the above reasons, we only support 2-prime RSA keys.
- 	return primes == 2
+@@ -68,5 +72,8 @@ func IsRSAKeySupported(primes int) bool {
  }
-+
-+func IsSaltSupported(salt int) bool {
+ 
+ func IsSaltSupported(salt int) bool {
 +	if goexperiment.CNGCrypto {
 +		return salt != 0 // rsa.PSSSaltLengthAuto
 +	}
-+	return true
-+}
+ 	return true
+ }
 diff --git a/src/crypto/internal/backend/fips140/cng.go b/src/crypto/internal/backend/fips140/cng.go
 new file mode 100644
 index 00000000000000..f769d15f94ab05
@@ -469,34 +463,21 @@ index 00000000000000..f769d15f94ab05
 +	}
 +	return enabled != 0
 +}
-diff --git a/src/crypto/rsa/pss.go b/src/crypto/rsa/pss.go
-index 4aac87d7952081..010ee1467501c3 100644
---- a/src/crypto/rsa/pss.go
-+++ b/src/crypto/rsa/pss.go
-@@ -342,7 +342,7 @@ func SignPSS(rand io.Reader, priv *PrivateKey, hash crypto.Hash, digest []byte,
- // The inputs are not considered confidential, and may leak through timing side
- // channels, or if an attacker has control of part of the inputs.
- func VerifyPSS(pub *PublicKey, hash crypto.Hash, digest []byte, sig []byte, opts *PSSOptions) error {
--	if boring.Enabled && boring.SupportsHash(hash) {
-+	if boring.Enabled && boring.IsSaltSupported(opts.saltLength()) && boring.SupportsHash(hash) {
- 		bkey, err := boringPublicKey(pub)
- 		if err != nil {
- 			return err
 diff --git a/src/crypto/rsa/pss_test.go b/src/crypto/rsa/pss_test.go
-index 2c82f50adf38b8..33630f14dcc8d4 100644
+index a4af0a2144870a..7d7115cff81cea 100644
 --- a/src/crypto/rsa/pss_test.go
 +++ b/src/crypto/rsa/pss_test.go
-@@ -284,7 +284,7 @@ func fromHex(hexStr string) []byte {
- }
+@@ -246,7 +246,7 @@ func fromHex(hexStr string) []byte {
  
  func TestInvalidPSSSaltLength(t *testing.T) {
+ 	t.Setenv("GODEBUG", "rsa1024min=0")
 -	key, err := GenerateKey(rand.Reader, 245)
 +	key, err := GenerateKey(rand.Reader, 512)
  	if err != nil {
  		t.Fatal(err)
  	}
 diff --git a/src/go.mod b/src/go.mod
-index 30e45951c763fa..0209eeb6b8642c 100644
+index 186ced4a1123a8..e9da0eb1301b93 100644
 --- a/src/go.mod
 +++ b/src/go.mod
 @@ -4,6 +4,7 @@ go 1.24
@@ -504,11 +485,11 @@ index 30e45951c763fa..0209eeb6b8642c 100644
  require (
  	github.com/golang-fips/openssl/v2 v2.0.4-0.20241211125030-65f2a3ae34cf
 +	github.com/microsoft/go-crypto-winnative v0.0.0-20241212090637-6d419040e383
- 	golang.org/x/crypto v0.25.1-0.20240722173533-bb80217080b0
- 	golang.org/x/net v0.27.1-0.20240722181819-765c7e89b3bd
+ 	golang.org/x/crypto v0.30.0
+ 	golang.org/x/net v0.32.1-0.20241206180132-552d8ac903a1
  )
 diff --git a/src/go.sum b/src/go.sum
-index fd8881e46df76e..1d0d5a1b7845bb 100644
+index 0a58eccb57a869..b464f023942b74 100644
 --- a/src/go.sum
 +++ b/src/go.sum
 @@ -1,5 +1,7 @@
@@ -516,14 +497,14 @@ index fd8881e46df76e..1d0d5a1b7845bb 100644
  github.com/golang-fips/openssl/v2 v2.0.4-0.20241211125030-65f2a3ae34cf/go.mod h1:OYUBsoxLpFu8OFyhZHxfpN8lgcsw8JhTC3BQK7+XUc0=
 +github.com/microsoft/go-crypto-winnative v0.0.0-20241212090637-6d419040e383 h1:fMAxrMWT19/kkIZIuB9cjqW8SqRxCH2+2ZiZr5qrpuI=
 +github.com/microsoft/go-crypto-winnative v0.0.0-20241212090637-6d419040e383/go.mod h1:JkxQeL8dGcyCuKjn1Etz4NmQrOMImMy4BA9hptEfVFA=
- golang.org/x/crypto v0.25.1-0.20240722173533-bb80217080b0 h1:wxHbFWyu21uEPJJnYaSDaHSWbvnZ9gLSSOPwnEc3lLM=
- golang.org/x/crypto v0.25.1-0.20240722173533-bb80217080b0/go.mod h1:T+wALwcMOSE0kXgUAnPAHqTLW+XHgcELELW8VaDgm/M=
- golang.org/x/net v0.27.1-0.20240722181819-765c7e89b3bd h1:pHzwejE8Zkb94bG4nA+fUeskKPFp1HPldrhv62dabro=
+ golang.org/x/crypto v0.30.0 h1:RwoQn3GkWiMkzlX562cLB7OxWvjH1L8xutO2WoJcRoY=
+ golang.org/x/crypto v0.30.0/go.mod h1:kDsLvtWBEx7MV9tJOj9bnXsPbxwJQ6csT/x4KIN4Ssk=
+ golang.org/x/net v0.32.1-0.20241206180132-552d8ac903a1 h1:+Yk1FZ5E+/ewA0nOO/HRYs9E4yeqpGOShuSAdzCNNoQ=
 diff --git a/src/go/build/deps_test.go b/src/go/build/deps_test.go
-index 6504a23ce5d51f..3b30b0dc249a94 100644
+index 37cb128ba9409a..3ceabaebc7ea46 100644
 --- a/src/go/build/deps_test.go
 +++ b/src/go/build/deps_test.go
-@@ -481,6 +481,10 @@ var depsRules = `
+@@ -518,6 +518,10 @@ var depsRules = `
  	crypto/cipher,
  	crypto/internal/boring/bcache,
  	crypto/internal/backend/fips140
@@ -534,7 +515,7 @@ index 6504a23ce5d51f..3b30b0dc249a94 100644
  	< github.com/golang-fips/openssl/v2/internal/subtle
  	< github.com/golang-fips/openssl/v2
  	< crypto/internal/boring
-@@ -521,6 +525,7 @@ var depsRules = `
+@@ -552,6 +556,7 @@ var depsRules = `
  
  	# CRYPTO-MATH is core bignum-based crypto - no cgo, net; fmt now ok.
  	CRYPTO, FMT, math/big
@@ -554,19 +535,6 @@ index 7c821ae4bc5727..1d0b9b20e9b1d4 100644
  }
  
  // Verify that the vendor directories contain only packages matching the list above.
-diff --git a/src/hash/example_test.go b/src/hash/example_test.go
-index f07b9aaa2c4898..2ff6c4827391c0 100644
---- a/src/hash/example_test.go
-+++ b/src/hash/example_test.go
-@@ -2,6 +2,8 @@
- // Use of this source code is governed by a BSD-style
- // license that can be found in the LICENSE file.
- 
-+//go:build !goexperiment.cngcrypto
-+
- package hash_test
- 
- import (
 diff --git a/src/internal/goexperiment/exp_cngcrypto_off.go b/src/internal/goexperiment/exp_cngcrypto_off.go
 new file mode 100644
 index 00000000000000..831460053281e2
@@ -598,7 +566,7 @@ index 00000000000000..99ee2542ca38a9
 +const CNGCrypto = true
 +const CNGCryptoInt = 1
 diff --git a/src/internal/goexperiment/flags.go b/src/internal/goexperiment/flags.go
-index 9c8b16735cd4f1..2e6bf5d7f8284d 100644
+index 233a12ee542328..8c140f0dbed134 100644
 --- a/src/internal/goexperiment/flags.go
 +++ b/src/internal/goexperiment/flags.go
 @@ -60,6 +60,7 @@ type Flags struct {
