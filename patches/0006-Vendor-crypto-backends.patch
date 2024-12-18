@@ -5,6 +5,8 @@ Subject: [PATCH] Vendor crypto backends
 
 To reproduce, run 'go mod vendor' in 'go/src'.
 ---
+ src/go.mod                                    |    1 +
+ src/go.sum                                    |    2 +
  .../golang-fips/openssl/v2/.gitignore         |    1 +
  .../golang-fips/openssl/v2/.gitleaks.toml     |    9 +
  .../github.com/golang-fips/openssl/v2/LICENSE |   20 +
@@ -44,6 +46,31 @@ To reproduce, run 'go mod vendor' in 'go/src'.
  .../openssl/v2/thread_setup_windows.c         |   64 +
  .../golang-fips/openssl/v2/tls1prf.go         |  160 +++
  .../github.com/golang-fips/openssl/v2/zaes.go |   86 ++
+ .../microsoft/go-crypto-darwin/LICENSE        |   21 +
+ .../microsoft/go-crypto-darwin/bbig/big.go    |   20 +
+ .../internal/cryptokit/cryptokit.go           |   34 +
+ .../internal/cryptokit/cryptokit.h            |   43 +
+ .../internal/cryptokit/ed25519.go             |   72 ++
+ .../internal/cryptokit/gcm.go                 |   36 +
+ .../internal/cryptokit/hkdf.go                |   77 ++
+ .../microsoft/go-crypto-darwin/xcrypto/aes.go |  305 +++++
+ .../microsoft/go-crypto-darwin/xcrypto/big.go |   16 +
+ .../go-crypto-darwin/xcrypto/cgo_go124.go     |   21 +
+ .../go-crypto-darwin/xcrypto/cipher.go        |  122 ++
+ .../microsoft/go-crypto-darwin/xcrypto/des.go |  117 ++
+ .../microsoft/go-crypto-darwin/xcrypto/ec.go  |   32 +
+ .../go-crypto-darwin/xcrypto/ecdh.go          |  181 +++
+ .../go-crypto-darwin/xcrypto/ecdsa.go         |  173 +++
+ .../go-crypto-darwin/xcrypto/ed25519.go       |  100 ++
+ .../microsoft/go-crypto-darwin/xcrypto/evp.go |  338 ++++++
+ .../go-crypto-darwin/xcrypto/hash.go          |  336 ++++++
+ .../go-crypto-darwin/xcrypto/hkdf.go          |   66 ++
+ .../go-crypto-darwin/xcrypto/hmac.go          |  113 ++
+ .../go-crypto-darwin/xcrypto/pbkdf2.go        |   65 +
+ .../go-crypto-darwin/xcrypto/rand.go          |   26 +
+ .../microsoft/go-crypto-darwin/xcrypto/rc4.go |   82 ++
+ .../microsoft/go-crypto-darwin/xcrypto/rsa.go |  176 +++
+ .../go-crypto-darwin/xcrypto/xcrypto.go       |   59 +
  .../microsoft/go-crypto-winnative/LICENSE     |   21 +
  .../microsoft/go-crypto-winnative/cng/aes.go  |  393 +++++++
  .../go-crypto-winnative/cng/bbig/big.go       |   31 +
@@ -67,8 +94,8 @@ To reproduce, run 'go mod vendor' in 'go/src'.
  .../internal/bcrypt/zsyscall_windows.go       |  389 ++++++
  .../internal/subtle/aliasing.go               |   32 +
  .../internal/sysdll/sys_windows.go            |   55 +
- src/vendor/modules.txt                        |   11 +
- 63 files changed, 11044 insertions(+)
+ src/vendor/modules.txt                        |   16 +
+ 90 files changed, 13683 insertions(+)
  create mode 100644 src/vendor/github.com/golang-fips/openssl/v2/.gitignore
  create mode 100644 src/vendor/github.com/golang-fips/openssl/v2/.gitleaks.toml
  create mode 100644 src/vendor/github.com/golang-fips/openssl/v2/LICENSE
@@ -108,6 +135,31 @@ To reproduce, run 'go mod vendor' in 'go/src'.
  create mode 100644 src/vendor/github.com/golang-fips/openssl/v2/thread_setup_windows.c
  create mode 100644 src/vendor/github.com/golang-fips/openssl/v2/tls1prf.go
  create mode 100644 src/vendor/github.com/golang-fips/openssl/v2/zaes.go
+ create mode 100644 src/vendor/github.com/microsoft/go-crypto-darwin/LICENSE
+ create mode 100644 src/vendor/github.com/microsoft/go-crypto-darwin/bbig/big.go
+ create mode 100644 src/vendor/github.com/microsoft/go-crypto-darwin/internal/cryptokit/cryptokit.go
+ create mode 100644 src/vendor/github.com/microsoft/go-crypto-darwin/internal/cryptokit/cryptokit.h
+ create mode 100644 src/vendor/github.com/microsoft/go-crypto-darwin/internal/cryptokit/ed25519.go
+ create mode 100644 src/vendor/github.com/microsoft/go-crypto-darwin/internal/cryptokit/gcm.go
+ create mode 100644 src/vendor/github.com/microsoft/go-crypto-darwin/internal/cryptokit/hkdf.go
+ create mode 100644 src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/aes.go
+ create mode 100644 src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/big.go
+ create mode 100644 src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/cgo_go124.go
+ create mode 100644 src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/cipher.go
+ create mode 100644 src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/des.go
+ create mode 100644 src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/ec.go
+ create mode 100644 src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/ecdh.go
+ create mode 100644 src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/ecdsa.go
+ create mode 100644 src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/ed25519.go
+ create mode 100644 src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/evp.go
+ create mode 100644 src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/hash.go
+ create mode 100644 src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/hkdf.go
+ create mode 100644 src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/hmac.go
+ create mode 100644 src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/pbkdf2.go
+ create mode 100644 src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/rand.go
+ create mode 100644 src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/rc4.go
+ create mode 100644 src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/rsa.go
+ create mode 100644 src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/xcrypto.go
  create mode 100644 src/vendor/github.com/microsoft/go-crypto-winnative/LICENSE
  create mode 100644 src/vendor/github.com/microsoft/go-crypto-winnative/cng/aes.go
  create mode 100644 src/vendor/github.com/microsoft/go-crypto-winnative/cng/bbig/big.go
@@ -132,6 +184,30 @@ To reproduce, run 'go mod vendor' in 'go/src'.
  create mode 100644 src/vendor/github.com/microsoft/go-crypto-winnative/internal/subtle/aliasing.go
  create mode 100644 src/vendor/github.com/microsoft/go-crypto-winnative/internal/sysdll/sys_windows.go
 
+diff --git a/src/go.mod b/src/go.mod
+index e9da0eb1301b93..3b361f14f06dde 100644
+--- a/src/go.mod
++++ b/src/go.mod
+@@ -4,6 +4,7 @@ go 1.24
+ 
+ require (
+ 	github.com/golang-fips/openssl/v2 v2.0.4-0.20241211125030-65f2a3ae34cf
++	github.com/microsoft/go-crypto-darwin v0.0.2-0.20241218125545-263581a6451b
+ 	github.com/microsoft/go-crypto-winnative v0.0.0-20241212090637-6d419040e383
+ 	golang.org/x/crypto v0.30.0
+ 	golang.org/x/net v0.32.1-0.20241206180132-552d8ac903a1
+diff --git a/src/go.sum b/src/go.sum
+index b464f023942b74..ceed7b59ecc516 100644
+--- a/src/go.sum
++++ b/src/go.sum
+@@ -1,5 +1,7 @@
+ github.com/golang-fips/openssl/v2 v2.0.4-0.20241211125030-65f2a3ae34cf h1:gkjE7LMxjlaSn8fdvbT/HJrpGcW/ZnwYpps7sSBhLD4=
+ github.com/golang-fips/openssl/v2 v2.0.4-0.20241211125030-65f2a3ae34cf/go.mod h1:OYUBsoxLpFu8OFyhZHxfpN8lgcsw8JhTC3BQK7+XUc0=
++github.com/microsoft/go-crypto-darwin v0.0.2-0.20241218125545-263581a6451b h1:Z61sn7vtffwT4aktIjIEIsMvS1qzfDvh8DNV/wBc7UU=
++github.com/microsoft/go-crypto-darwin v0.0.2-0.20241218125545-263581a6451b/go.mod h1:LyP4oZ0QcysEJdqUTOk9ngNFArRFK94YRImkoJ8julQ=
+ github.com/microsoft/go-crypto-winnative v0.0.0-20241212090637-6d419040e383 h1:fMAxrMWT19/kkIZIuB9cjqW8SqRxCH2+2ZiZr5qrpuI=
+ github.com/microsoft/go-crypto-winnative v0.0.0-20241212090637-6d419040e383/go.mod h1:JkxQeL8dGcyCuKjn1Etz4NmQrOMImMy4BA9hptEfVFA=
+ golang.org/x/crypto v0.30.0 h1:RwoQn3GkWiMkzlX562cLB7OxWvjH1L8xutO2WoJcRoY=
 diff --git a/src/vendor/github.com/golang-fips/openssl/v2/.gitignore b/src/vendor/github.com/golang-fips/openssl/v2/.gitignore
 new file mode 100644
 index 00000000000000..79b5594df7fa29
@@ -7582,6 +7658,2787 @@ index 00000000000000..e60a5dde390be6
 +	}
 +	return block
 +}
+diff --git a/src/vendor/github.com/microsoft/go-crypto-darwin/LICENSE b/src/vendor/github.com/microsoft/go-crypto-darwin/LICENSE
+new file mode 100644
+index 00000000000000..9e841e7a26e4eb
+--- /dev/null
++++ b/src/vendor/github.com/microsoft/go-crypto-darwin/LICENSE
+@@ -0,0 +1,21 @@
++    MIT License
++
++    Copyright (c) Microsoft Corporation.
++
++    Permission is hereby granted, free of charge, to any person obtaining a copy
++    of this software and associated documentation files (the "Software"), to deal
++    in the Software without restriction, including without limitation the rights
++    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++    copies of the Software, and to permit persons to whom the Software is
++    furnished to do so, subject to the following conditions:
++
++    The above copyright notice and this permission notice shall be included in all
++    copies or substantial portions of the Software.
++
++    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++    SOFTWARE
+diff --git a/src/vendor/github.com/microsoft/go-crypto-darwin/bbig/big.go b/src/vendor/github.com/microsoft/go-crypto-darwin/bbig/big.go
+new file mode 100644
+index 00000000000000..12466f0a1410fa
+--- /dev/null
++++ b/src/vendor/github.com/microsoft/go-crypto-darwin/bbig/big.go
+@@ -0,0 +1,20 @@
++// Copyright (c) Microsoft Corporation.
++// Licensed under the MIT License.
++
++package bbig
++
++import (
++	"math/big"
++
++	"github.com/microsoft/go-crypto-darwin/xcrypto"
++)
++
++func Enc(b *big.Int) xcrypto.BigInt {
++	// Return the input directly since BigInt is now *big.Int
++	return b
++}
++
++func Dec(b xcrypto.BigInt) *big.Int {
++	// Return the input directly since BigInt is now *big.Int
++	return b
++}
+diff --git a/src/vendor/github.com/microsoft/go-crypto-darwin/internal/cryptokit/cryptokit.go b/src/vendor/github.com/microsoft/go-crypto-darwin/internal/cryptokit/cryptokit.go
+new file mode 100644
+index 00000000000000..5d331b8ed22252
+--- /dev/null
++++ b/src/vendor/github.com/microsoft/go-crypto-darwin/internal/cryptokit/cryptokit.go
+@@ -0,0 +1,34 @@
++// Copyright (c) Microsoft Corporation.
++// Licensed under the MIT License.
++
++//go:build darwin
++
++package cryptokit
++
++// #cgo CFLAGS: -Wno-deprecated-declarations
++// #cgo LDFLAGS: -L /Library/Developer/CommandLineTools/usr/lib/swift/macosx ${SRCDIR}/CryptoKit.o
++import "C"
++import "unsafe"
++
++// base returns the address of the underlying array in b,
++// being careful not to panic when b has zero length.
++func base(b []byte) *C.uchar {
++	if len(b) == 0 {
++		return nil
++	}
++	return (*C.uchar)(unsafe.Pointer(&b[0]))
++}
++
++func sbase(b []byte) *C.char {
++	if len(b) == 0 {
++		return nil
++	}
++	return (*C.char)(unsafe.Pointer(&b[0]))
++}
++
++func pbase(b []byte) unsafe.Pointer {
++	if len(b) == 0 {
++		return nil
++	}
++	return unsafe.Pointer(&b[0])
++}
+diff --git a/src/vendor/github.com/microsoft/go-crypto-darwin/internal/cryptokit/cryptokit.h b/src/vendor/github.com/microsoft/go-crypto-darwin/internal/cryptokit/cryptokit.h
+new file mode 100644
+index 00000000000000..dfc73697c392f8
+--- /dev/null
++++ b/src/vendor/github.com/microsoft/go-crypto-darwin/internal/cryptokit/cryptokit.h
+@@ -0,0 +1,43 @@
++// Copyright (c) Microsoft Corporation.
++// Licensed under the MIT License.
++
++#ifndef CRYPTOKIT_H
++#define CRYPTOKIT_H
++
++#include <stdint.h>
++#include <stddef.h>
++
++// AES GCM encryption and decryption
++int encryptAESGCM(const uint8_t* key, size_t keyLength, 
++                         const uint8_t* data, size_t dataLength, 
++                         const uint8_t* nonce, size_t nonceLength, 
++                         const uint8_t* aad, size_t aadLength, 
++                         uint8_t* cipherText, size_t cipherTextLength, 
++                         uint8_t* tag);
++int decryptAESGCM(const uint8_t* key, size_t keyLength, 
++                         const uint8_t* data, size_t dataLength, 
++                         const uint8_t* nonce, size_t nonceLength, 
++                         const uint8_t* aad, size_t aadLength, 
++                         const uint8_t* tag, size_t tagLength, 
++                         uint8_t* out, size_t* outLength);
++
++// Generates an Ed25519 keypair.
++// The private key is 64 bytes (first 32 bytes are the seed, next 32 bytes are the public key).
++// The public key is 32 bytes.
++void generateKeyEd25519(uint8_t* key);
++int newPrivateKeyEd25519FromSeed(uint8_t* key, const uint8_t* seed);
++int newPublicKeyEd25519(uint8_t* key, const uint8_t* pub);
++int signEd25519(const uint8_t* privateKey, const uint8_t* message, size_t messageLength, uint8_t* sigBuffer);
++int verifyEd25519(const uint8_t* publicKey, const uint8_t* message, size_t messageLength, const uint8_t* sig);
++
++// HKDF key derivation
++int extractHKDF(int32_t hashFunction, 
++                      const uint8_t* secret, size_t secretLength, 
++                      const uint8_t* salt, size_t saltLength, 
++                      uint8_t* prk, size_t prkLength);
++int expandHKDF(int32_t hashFunction,
++                        const uint8_t* prk, size_t prkLength,
++                        const uint8_t* info, size_t infoLength,
++                        uint8_t* okm, size_t okmLength);
++
++#endif /* CRYPTOKIT_H */
+diff --git a/src/vendor/github.com/microsoft/go-crypto-darwin/internal/cryptokit/ed25519.go b/src/vendor/github.com/microsoft/go-crypto-darwin/internal/cryptokit/ed25519.go
+new file mode 100644
+index 00000000000000..2fa15c8fa5529a
+--- /dev/null
++++ b/src/vendor/github.com/microsoft/go-crypto-darwin/internal/cryptokit/ed25519.go
+@@ -0,0 +1,72 @@
++// Copyright (c) Microsoft Corporation.
++// Licensed under the MIT License.
++
++//go:build darwin
++
++package cryptokit
++
++// #include "cryptokit.h"
++import "C"
++import (
++	"errors"
++)
++
++// GenerateKeyEd25519 generates an Ed25519 private key using the Swift implementation.
++func GenerateKeyEd25519(key []byte) {
++	C.generateKeyEd25519(base(key))
++}
++
++// NewPrivateKeyEd25519FromSeed generates an Ed25519 private key from a seed.
++func NewPrivateKeyEd25519FromSeed(key, seed []byte) error {
++	result := C.newPrivateKeyEd25519FromSeed(base(key), base(seed))
++	if result != 0 {
++		return errors.New("failed to generate Ed25519 key from seed")
++	}
++	return nil
++}
++
++// NewPublicKeyEd25519 creates a new Ed25519 public key from raw bytes.
++func NewPublicKeyEd25519(key, pub []byte) error {
++	result := C.newPublicKeyEd25519(base(key), base(pub))
++	if result != 0 {
++		return errors.New("failed to create Ed25519 public key")
++	}
++	return nil
++}
++
++// SignEd25519 signs a message using the provided private key.
++func SignEd25519(sig, privateKey, message []byte) error {
++	result := C.signEd25519(base(privateKey), base(message), C.size_t(len(message)), base(sig))
++	if result < 0 {
++		switch result {
++		case -1:
++			return errors.New("invalid inputs to SignEd25519")
++		case -2:
++			return errors.New("failed to reconstruct private key")
++		case -3:
++			return errors.New("failed to sign the message")
++		case -4:
++			return errors.New("signature buffer too small")
++		default:
++			return errors.New("unknown error in SignEd25519")
++		}
++	}
++	return nil
++}
++
++// VerifyEd25519 verifies a signature using the provided public key and message.
++func VerifyEd25519(publicKey, message, sig []byte) error {
++	result := C.verifyEd25519(base(publicKey), base(message), C.size_t(len(message)), base(sig))
++	switch result {
++	case 1:
++		return nil // Valid signature
++	case 0:
++		return errors.New("ed25519: invalid signature")
++	case -1:
++		return errors.New("invalid inputs to VerifyEd25519")
++	case -2:
++		return errors.New("failed to reconstruct public key")
++	default:
++		return errors.New("unknown error in VerifyEd25519")
++	}
++}
+diff --git a/src/vendor/github.com/microsoft/go-crypto-darwin/internal/cryptokit/gcm.go b/src/vendor/github.com/microsoft/go-crypto-darwin/internal/cryptokit/gcm.go
+new file mode 100644
+index 00000000000000..458e9eb57416b1
+--- /dev/null
++++ b/src/vendor/github.com/microsoft/go-crypto-darwin/internal/cryptokit/gcm.go
+@@ -0,0 +1,36 @@
++// Copyright (c) Microsoft Corporation.
++// Licensed under the MIT License.
++
++//go:build darwin
++
++package cryptokit
++
++// #include "cryptokit.h"
++import "C"
++
++// EncryptAESGCM performs AES-GCM encryption using Swift.
++func EncryptAESGCM(key, plaintext, nonce, additionalData, ciphertext, tag []byte) int {
++	err := C.encryptAESGCM(
++		base(key), C.size_t(len(key)),
++		base(plaintext), C.size_t(len(plaintext)),
++		base(nonce), C.size_t(len(nonce)),
++		base(additionalData), C.size_t(len(additionalData)),
++		base(ciphertext), C.size_t(len(ciphertext)),
++		base(tag),
++	)
++	return int(err)
++}
++
++// DecryptAESGCM performs AES-GCM decryption using Swift.
++func DecryptAESGCM(key, ciphertext, nonce, additionalData, tag, plaintext []byte) (int, int) {
++	var decSize C.size_t
++	err := C.decryptAESGCM(
++		base(key), C.size_t(len(key)),
++		base(ciphertext), C.size_t(len(ciphertext)),
++		base(nonce), C.size_t(len(nonce)),
++		base(additionalData), C.size_t(len(additionalData)),
++		base(tag), C.size_t(len(tag)),
++		base(plaintext), &decSize,
++	)
++	return int(decSize), int(err)
++}
+diff --git a/src/vendor/github.com/microsoft/go-crypto-darwin/internal/cryptokit/hkdf.go b/src/vendor/github.com/microsoft/go-crypto-darwin/internal/cryptokit/hkdf.go
+new file mode 100644
+index 00000000000000..da161adcd88ea6
+--- /dev/null
++++ b/src/vendor/github.com/microsoft/go-crypto-darwin/internal/cryptokit/hkdf.go
+@@ -0,0 +1,77 @@
++// Copyright (c) Microsoft Corporation.
++// Licensed under the MIT License.
++
++//go:build darwin
++
++package cryptokit
++
++// #include "cryptokit.h"
++import "C"
++import (
++	"crypto"
++	"errors"
++)
++
++// ExtractHKDF performs the extract step of HKDF using the specified hash function.
++func ExtractHKDF(hash crypto.Hash, secret, salt []byte) ([]byte, error) {
++	h, err := cryptoHashToSwift(hash)
++	if err != nil {
++		return nil, err
++	}
++
++	// Allocate buffer for derived key
++	prk := make([]byte, hash.Size())
++
++	// Call Swift function
++	result := C.extractHKDF(
++		h,
++		base(secret), C.size_t(len(secret)),
++		base(salt), C.size_t(len(salt)),
++		base(prk), C.size_t(len(prk)),
++	)
++
++	if result != 0 {
++		return nil, errors.New("HKDF derivation failed")
++	}
++
++	return prk, nil
++}
++
++func ExpandHKDF(hash crypto.Hash, pseudorandomKey, info []byte, keyLength int) ([]byte, error) {
++	h, err := cryptoHashToSwift(hash)
++	if err != nil {
++		return nil, err
++	}
++
++	// Allocate buffer for derived key
++	expandedKey := make([]byte, keyLength)
++
++	// Call Swift function
++	result := C.expandHKDF(
++		h,
++		base(pseudorandomKey), C.size_t(len(pseudorandomKey)),
++		base(info), C.size_t(len(info)),
++		base(expandedKey), C.size_t(len(expandedKey)),
++	)
++
++	if result != 0 {
++		return nil, errors.New("HKDF derivation failed")
++	}
++
++	return expandedKey, nil
++}
++
++func cryptoHashToSwift(hash crypto.Hash) (C.int32_t, error) {
++	switch hash {
++	case crypto.SHA1:
++		return 1, nil
++	case crypto.SHA256:
++		return 2, nil
++	case crypto.SHA384:
++		return 3, nil
++	case crypto.SHA512:
++		return 4, nil
++	default:
++		return 0, errors.New("unsupported hash function")
++	}
++}
+diff --git a/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/aes.go b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/aes.go
+new file mode 100644
+index 00000000000000..7c9b339a005023
+--- /dev/null
++++ b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/aes.go
+@@ -0,0 +1,305 @@
++// Copyright (c) Microsoft Corporation.
++// Licensed under the MIT License.
++
++//go:build darwin
++
++package xcrypto
++
++// #include <CommonCrypto/CommonCrypto.h>
++import "C"
++import (
++	"crypto/cipher"
++	"errors"
++	"slices"
++
++	"github.com/microsoft/go-crypto-darwin/internal/cryptokit"
++)
++
++//go:generate go run github.com/microsoft/go-crypto-darwin/cmd/gentestvectors -out vectors_test.go
++
++type cipherGCMTLS uint8
++
++const (
++	cipherGCMTLSNone cipherGCMTLS = iota
++	cipherGCMTLS12
++	cipherGCMTLS13
++)
++
++const (
++	// AES block size is the same for all key sizes
++	aesBlockSize         = C.kCCBlockSizeAES128
++	gcmTagSize           = 16
++	gcmStandardNonceSize = 12
++	// TLS 1.2 additional data is constructed as:
++	//
++	//     additional_data = seq_num(8) + TLSCompressed.type(1) + TLSCompressed.version(2) + TLSCompressed.length(2);
++	gcmTls12AddSize = 13
++	// TLS 1.3 additional data is constructed as:
++	//
++	//     additional_data = TLSCiphertext.opaque_type(1) || TLSCiphertext.legacy_record_version(2) || TLSCiphertext.length(2)
++	gcmTls13AddSize      = 5
++	gcmTlsFixedNonceSize = 4
++)
++
++type aesCipher struct {
++	key  []byte
++	kind C.CCAlgorithm
++}
++
++func NewAESCipher(key []byte) (cipher.Block, error) {
++	var alg C.CCAlgorithm
++	switch len(key) {
++	case 16, 24, 32:
++		alg = C.kCCAlgorithmAES
++	default:
++		return nil, errors.New("crypto/aes: invalid key size")
++	}
++	c := &aesCipher{
++		key:  slices.Clone(key),
++		kind: alg,
++	}
++	return c, nil
++}
++
++func (c *aesCipher) BlockSize() int { return aesBlockSize }
++
++func (c *aesCipher) Encrypt(dst, src []byte) {
++	blockSize := c.BlockSize()
++	if len(src) < blockSize || len(dst) < blockSize {
++		panic("crypto/aes: input or output block is too small")
++	}
++
++	src, dst = src[:blockSize], dst[:blockSize]
++
++	if inexactOverlap(dst, src) {
++		panic("crypto/aes: invalid buffer overlap")
++	}
++
++	status := C.CCCrypt(
++		C.kCCEncrypt,          // Operation
++		C.CCAlgorithm(c.kind), // Algorithm
++		0,                     // Options
++		pbase(c.key),          // Key
++		C.size_t(len(c.key)),  // Key length
++		nil,                   // IV
++		pbase(src),            // Input
++		C.size_t(blockSize),   // Input length
++		pbase(dst),            // Output
++		C.size_t(blockSize),   // Output length
++		nil,                   // Output length
++	)
++	if status != C.kCCSuccess {
++		panic("crypto/aes: encryption failed")
++	}
++}
++
++func (c *aesCipher) Decrypt(dst, src []byte) {
++	blockSize := c.BlockSize()
++	if len(src) < blockSize || len(dst) < blockSize {
++		panic("crypto/aes: input or output block is too small")
++	}
++
++	src, dst = src[:blockSize], dst[:blockSize]
++
++	if inexactOverlap(dst, src) {
++		panic("crypto/aes: invalid buffer overlap")
++	}
++
++	status := C.CCCrypt(
++		C.kCCDecrypt,          // Operation
++		C.CCAlgorithm(c.kind), // Algorithm
++		0,                     // Options
++		pbase(c.key),          // Key
++		C.size_t(len(c.key)),  // Key length
++		nil,                   // IV
++		pbase(src),            // Input
++		C.size_t(blockSize),   // Input length
++		pbase(dst),            // Output
++		C.size_t(blockSize),   // Output length
++		nil,                   // Output length
++	)
++	if status != C.kCCSuccess {
++		panic("crypto/aes: decryption failed")
++	}
++}
++
++type aesGCM struct {
++	key []byte
++	tls cipherGCMTLS
++	// minNextNonce is the minimum value that the next nonce can be, enforced by
++	// all TLS modes.
++	minNextNonce uint64
++	// mask is the nonce mask used in TLS 1.3 mode.
++	mask uint64
++	// maskInitialized is true if mask has been initialized. This happens during
++	// the first Seal. The initialized mask may be 0. Used by TLS 1.3 mode.
++	maskInitialized bool
++}
++
++type noGCM struct {
++	cipher.Block
++}
++
++// NewGCM constructs a GCM block mode for AES using the cryptokit package
++func (c *aesCipher) NewGCM(nonceSize, tagSize int) (cipher.AEAD, error) {
++	if nonceSize != gcmStandardNonceSize && tagSize != gcmTagSize {
++		return nil, errors.New("crypto/aes: GCM tag and nonce sizes can't be non-standard at the same time")
++	}
++	// Fall back to standard library for GCM with non-standard nonce or tag size.
++	if nonceSize != gcmStandardNonceSize {
++		return cipher.NewGCMWithNonceSize(&noGCM{c}, nonceSize)
++	}
++	if tagSize != gcmTagSize {
++		return cipher.NewGCMWithTagSize(&noGCM{c}, tagSize)
++	}
++	return &aesGCM{key: c.key, tls: cipherGCMTLSNone}, nil
++}
++
++func (g *aesGCM) NonceSize() int { return gcmStandardNonceSize }
++
++func (g *aesGCM) Overhead() int { return gcmTagSize }
++
++func (g *aesGCM) Seal(dst, nonce, plaintext, additionalData []byte) []byte {
++	if len(nonce) != gcmStandardNonceSize {
++		panic("cipher: incorrect nonce length given to GCM")
++	}
++	if uint64(len(plaintext)) > ((1<<32)-2)*aesBlockSize || len(plaintext)+gcmTagSize < len(plaintext) {
++		panic("cipher: message too large for GCM")
++	}
++	if len(dst)+len(plaintext)+gcmTagSize < len(dst) {
++		panic("cipher: message too large for buffer")
++	}
++
++	if g.tls != cipherGCMTLSNone {
++		if g.tls == cipherGCMTLS12 && len(additionalData) != gcmTls12AddSize {
++			panic("cipher: incorrect additional data length given to GCM TLS 1.2")
++		} else if g.tls == cipherGCMTLS13 && len(additionalData) != gcmTls13AddSize {
++			panic("cipher: incorrect additional data length given to GCM TLS 1.3")
++		}
++		counter := bigUint64(nonce[gcmTlsFixedNonceSize:])
++
++		// TLS 1.3 Masking
++		if g.tls == cipherGCMTLS13 {
++			if !g.maskInitialized {
++				g.mask = counter
++				g.maskInitialized = true
++			}
++			// Apply mask to the counter
++			counter ^= g.mask
++		}
++
++		// Enforce monotonicity and max limit
++		const maxUint64 = 1<<64 - 1
++		if counter == maxUint64 {
++			panic("cipher: nonce counter must be less than 2^64 - 1")
++		}
++		if counter < g.minNextNonce {
++			panic("cipher: nonce counter must be strictly monotonically increasing")
++		}
++
++		defer func() {
++			g.minNextNonce = counter + 1
++		}()
++	}
++
++	// Make room in dst to append plaintext+overhead.
++	ret, out := sliceForAppend(dst, len(plaintext)+gcmTagSize)
++
++	// Check delayed until now to make sure len(dst) is accurate.
++	if inexactOverlap(out, plaintext) {
++		panic("cipher: invalid buffer overlap")
++	}
++
++	tag := out[len(out)-gcmTagSize:]
++	err := cryptokit.EncryptAESGCM(g.key, plaintext, nonce, additionalData, out[:len(out)-gcmTagSize], tag)
++	if err != 0 {
++		panic("cipher: encryption failed")
++	}
++	return ret
++}
++
++var errOpen = errors.New("cipher: message authentication failed")
++
++func (g *aesGCM) Open(dst, nonce, ciphertext, additionalData []byte) ([]byte, error) {
++	if len(nonce) != gcmStandardNonceSize {
++		panic("cipher: incorrect nonce length given to GCM")
++	}
++	if len(ciphertext) < gcmTagSize {
++		return nil, errOpen
++	}
++	if uint64(len(ciphertext)) > ((1<<32)-2)*aesBlockSize+gcmTagSize {
++		return nil, errOpen
++	}
++	// BoringCrypto does not do any TLS check when decrypting, neither do we.
++
++	// Ensure we don't process if ciphertext lacks both ciphertext and tag
++	if len(ciphertext) < gcmTagSize {
++		return nil, errors.New("decryption failed: ciphertext too short for tag")
++	}
++
++	tag := ciphertext[len(ciphertext)-gcmTagSize:]
++	ciphertext = ciphertext[:len(ciphertext)-gcmTagSize]
++
++	ret, out := sliceForAppend(dst, len(ciphertext))
++
++	decSize, err := cryptokit.DecryptAESGCM(g.key, ciphertext, nonce, additionalData, tag, out)
++	if err != 0 {
++		return nil, errOpen
++	}
++
++	if decSize != len(ciphertext) {
++		// If the decrypted data size does not match, zero out `out` and return `errOpen`
++		for i := range out {
++			out[i] = 0
++		}
++		return nil, errOpen
++	}
++
++	return ret, nil
++}
++
++// NewGCMTLS returns a GCM cipher specific to TLS
++// and should not be used for non-TLS purposes.
++func NewGCMTLS(block cipher.Block) (cipher.AEAD, error) {
++	cipher, ok := block.(*aesCipher)
++	if !ok {
++		return nil, errors.New("crypto/aes: invalid block cipher")
++	}
++	return &aesGCM{key: cipher.key, tls: cipherGCMTLS12}, nil
++}
++
++// NewGCMTLS13 returns a GCM cipher specific to TLS 1.3 and should not be used
++// for non-TLS purposes.
++func NewGCMTLS13(block cipher.Block) (cipher.AEAD, error) {
++	cipher, ok := block.(*aesCipher)
++	if !ok {
++		return nil, errors.New("crypto/aes: invalid block cipher")
++	}
++	return &aesGCM{key: cipher.key, tls: cipherGCMTLS13}, nil
++}
++
++func (c *aesCipher) NewCBCEncrypter(iv []byte) cipher.BlockMode {
++	return newCBC(C.kCCEncrypt, c.kind, c.key, iv)
++}
++
++func (c *aesCipher) NewCBCDecrypter(iv []byte) cipher.BlockMode {
++	return newCBC(C.kCCDecrypt, c.kind, c.key, iv)
++}
++
++// sliceForAppend is a mirror of crypto/cipher.sliceForAppend.
++func sliceForAppend(in []byte, n int) (head, tail []byte) {
++	if total := len(in) + n; cap(in) >= total {
++		head = in[:total]
++	} else {
++		head = make([]byte, total)
++		copy(head, in)
++	}
++	tail = head[len(in):]
++	return
++}
++
++func bigUint64(b []byte) uint64 {
++	_ = b[7] // bounds check hint to compiler; see go.dev/issue/14808
++	return uint64(b[7]) | uint64(b[6])<<8 | uint64(b[5])<<16 | uint64(b[4])<<24 |
++		uint64(b[3])<<32 | uint64(b[2])<<40 | uint64(b[1])<<48 | uint64(b[0])<<56
++}
+diff --git a/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/big.go b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/big.go
+new file mode 100644
+index 00000000000000..4925660551dc41
+--- /dev/null
++++ b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/big.go
+@@ -0,0 +1,16 @@
++// Copyright (c) Microsoft Corporation.
++// Licensed under the MIT License.
++
++package xcrypto
++
++import "math/big"
++
++// This file does not have build constraints to
++// facilitate using BigInt in Go crypto.
++// Go crypto references BigInt unconditionally,
++// even if it is not finally used.
++
++// A BigInt is the raw words from a BigInt.
++// This definition allows us to avoid importing math/big.
++// Conversion between BigInt and *big.Int is in bbig.
++type BigInt = *big.Int
+diff --git a/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/cgo_go124.go b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/cgo_go124.go
+new file mode 100644
+index 00000000000000..375bc368162acb
+--- /dev/null
++++ b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/cgo_go124.go
+@@ -0,0 +1,21 @@
++// Copyright (c) Microsoft Corporation.
++// Licensed under the MIT License.
++
++//go:build go1.24 && darwin
++
++package xcrypto
++
++// The following noescape and nocallback directives are used to prevent the Go
++// compiler from allocating function parameters on the heap. See
++// https://github.com/golang/go/blob/0733682e5ff4cd294f5eccb31cbe87a543147bc6/src/cmd/cgo/doc.go#L439-L461
++//
++// If possible, write a C wrapper function to optimize a call rather than using
++// this feature so the optimization will work for all supported Go versions.
++//
++// This is just a performance optimization. Only add functions that have been
++// observed to benefit from these directives, not every function that is merely
++// expected to meet the noescape/nocallback criteria.
++
++// #cgo noescape SecRandomCopyBytes
++// #cgo nocallback SecRandomCopyBytes
++import "C"
+diff --git a/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/cipher.go b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/cipher.go
+new file mode 100644
+index 00000000000000..9f3a8f92bd43fc
+--- /dev/null
++++ b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/cipher.go
+@@ -0,0 +1,122 @@
++// Copyright (c) Microsoft Corporation.
++// Licensed under the MIT License.
++
++//go:build darwin
++
++package xcrypto
++
++// #include <CommonCrypto/CommonCrypto.h>
++import "C"
++
++import (
++	"runtime"
++	"unsafe"
++)
++
++type cbcCipher struct {
++	blockSize int
++	cryptor   C.CCCryptorRef
++}
++
++func newCBC(operation C.CCOperation, kind C.CCAlgorithm, key, iv []byte) *cbcCipher {
++	var blockSize int
++	switch kind {
++	case C.kCCAlgorithmAES:
++		blockSize = aesBlockSize
++	case C.kCCAlgorithmDES, C.kCCAlgorithm3DES:
++		blockSize = desBlockSize
++	default:
++		panic("invalid algorithm")
++	}
++
++	// Create and initialize the cbcMode struct with CCCryptorCreate here
++	x := &cbcCipher{blockSize: blockSize}
++	status := C.CCCryptorCreateWithMode(
++		operation,           // Specifies whether encryption or decryption is performed (kCCEncrypt or kCCDecrypt).
++		C.kCCModeCBC,        // Mode of operation, here explicitly set to CBC (Cipher Block Chaining).
++		C.CCAlgorithm(kind), // The encryption algorithm (e.g., kCCAlgorithmAES128, kCCAlgorithmDES).
++		C.ccNoPadding,       // Padding option, set to no padding; padding can be handled at a higher level if necessary.
++		pbase(iv),           // Initialization Vector (IV) for the cipher, required for CBC mode. Should be nil for ECB mode.
++		pbase(key),          // Pointer to the encryption key.
++		C.size_t(len(key)),  // Length of the encryption key in bytes.
++		nil,                 // Tweak key, used only for XTS mode; here set to nil as it’s not required for CBC.
++		0,                   // Length of the tweak key, set to 0 as tweak is nil.
++		0,                   // Number of rounds, mainly for RC2 and Blowfish; not used here, so set to 0.
++		0,                   // Mode options for CTR and F8 modes; not used for CBC, so set to 0.
++		&x.cryptor,          // Pointer to the CCCryptorRef output, which will hold the state for encryption or decryption.
++	)
++
++	if status != C.kCCSuccess {
++		panic("crypto/des: CCCryptorCreate failed")
++	}
++
++	runtime.SetFinalizer(x, (*cbcCipher).finalize)
++	return x
++
++}
++
++func (x *cbcCipher) finalize() {
++	if x.cryptor != nil {
++		C.CCCryptorRelease(x.cryptor)
++		x.cryptor = nil
++	}
++}
++
++func (x *cbcCipher) BlockSize() int { return x.blockSize }
++
++func (x *cbcCipher) CryptBlocks(dst, src []byte) {
++	if inexactOverlap(dst, src) {
++		panic("crypto/cipher: invalid buffer overlap")
++	}
++	if len(src)%x.blockSize != 0 {
++		panic("crypto/cipher: input not full blocks")
++	}
++	if len(dst) < len(src) {
++		panic("crypto/cipher: output smaller than input")
++	}
++	if len(src) == 0 {
++		return
++	}
++	var outLength C.size_t
++	status := C.CCCryptorUpdate(
++		x.cryptor,          // CCCryptorRef created by CCCryptorCreateWithMode; holds the encryption/decryption state.
++		pbase(src),         // Pointer to the input data (source buffer) to be encrypted or decrypted.
++		C.size_t(len(src)), // Length of the input data in bytes.
++		pbase(dst),         // Pointer to the output buffer (destination buffer) where the result will be stored.
++		C.size_t(len(dst)), // Size of the output buffer in bytes; must be large enough to hold the processed data.
++		&outLength,         // Pointer to a variable that will contain the number of bytes written to the output buffer.
++	)
++	if status != C.kCCSuccess {
++		panic("crypto/cipher: CCCryptorUpdate failed")
++	}
++	runtime.KeepAlive(x)
++}
++
++func (x *cbcCipher) SetIV(iv []byte) {
++	if len(iv) != x.blockSize {
++		panic("crypto/cipher: incorrect IV length")
++	}
++	status := C.CCCryptorReset(
++		x.cryptor, // CCCryptorRef created by CCCryptorCreateWithMode; holds the encryption/decryption state.
++		pbase(iv), // Pointer to the new IV to be set.
++	)
++	if status != C.kCCSuccess {
++		panic("crypto/cipher: CCCryptorReset failed")
++	}
++	runtime.KeepAlive(x)
++}
++
++// The following two functions are a mirror of golang.org/x/crypto/internal/subtle.
++
++func anyOverlap(x, y []byte) bool {
++	return len(x) > 0 && len(y) > 0 &&
++		uintptr(unsafe.Pointer(&x[0])) <= uintptr(unsafe.Pointer(&y[len(y)-1])) &&
++		uintptr(unsafe.Pointer(&y[0])) <= uintptr(unsafe.Pointer(&x[len(x)-1]))
++}
++
++func inexactOverlap(x, y []byte) bool {
++	if len(x) == 0 || len(y) == 0 || &x[0] == &y[0] {
++		return false
++	}
++	return anyOverlap(x, y)
++}
+diff --git a/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/des.go b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/des.go
+new file mode 100644
+index 00000000000000..ce490c1167c536
+--- /dev/null
++++ b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/des.go
+@@ -0,0 +1,117 @@
++// Copyright (c) Microsoft Corporation.
++// Licensed under the MIT License.
++
++//go:build darwin
++
++package xcrypto
++
++// #include <CommonCrypto/CommonCrypto.h>
++import "C"
++import (
++	"crypto/cipher"
++	"errors"
++	"slices"
++)
++
++const desBlockSize = C.kCCBlockSizeDES
++
++type desCipher struct {
++	key  []byte
++	kind C.CCAlgorithm
++}
++
++// NewDESCipher creates a new DES cipher block using the specified key (8 bytes).
++func NewDESCipher(key []byte) (cipher.Block, error) {
++	if len(key) != 8 {
++		return nil, errors.New("crypto/des: invalid key size for DES")
++	}
++
++	c := &desCipher{
++		key:  slices.Clone(key),
++		kind: C.kCCAlgorithmDES,
++	}
++	return c, nil
++}
++
++// NewTripleDESCipher creates a new 3DES cipher block using the specified key (24 bytes).
++func NewTripleDESCipher(key []byte) (cipher.Block, error) {
++	if len(key) != 24 {
++		return nil, errors.New("crypto/des: invalid key size for 3DES")
++	}
++
++	c := &desCipher{
++		key:  slices.Clone(key),
++		kind: C.kCCAlgorithm3DES,
++	}
++	return c, nil
++}
++
++func (c *desCipher) BlockSize() int { return desBlockSize }
++
++func (c *desCipher) Encrypt(dst, src []byte) {
++	blockSize := c.BlockSize()
++	if len(src) < blockSize || len(dst) < blockSize {
++		panic("crypto/des: input or output block is too small")
++	}
++
++	if inexactOverlap(dst[:blockSize], src[:blockSize]) {
++		panic("crypto/des: invalid buffer overlap")
++	}
++
++	var outLength C.size_t
++	status := C.CCCrypt(
++		C.kCCEncrypt,
++		C.CCAlgorithm(c.kind),
++		C.kCCOptionECBMode,
++		pbase(c.key),
++		C.size_t(len(c.key)),
++		nil,
++		pbase(src[:blockSize]),
++		C.size_t(blockSize),
++		pbase(dst[:blockSize]),
++		C.size_t(blockSize),
++		&outLength,
++	)
++	if status != C.kCCSuccess {
++		panic("crypto/des: encryption failed")
++	}
++}
++
++func (c *desCipher) Decrypt(dst, src []byte) {
++	blockSize := c.BlockSize()
++	if len(src) < blockSize || len(dst) < blockSize {
++		panic("crypto/des: input or output block is too small")
++	}
++
++	if inexactOverlap(dst[:blockSize], src[:blockSize]) {
++		panic("crypto/des: invalid buffer overlap")
++	}
++
++	var outLength C.size_t
++	status := C.CCCrypt(
++		C.kCCDecrypt,
++		C.CCAlgorithm(c.kind),
++		C.kCCOptionECBMode,
++		pbase(c.key),
++		C.size_t(len(c.key)),
++		nil,
++		pbase(src[:blockSize]),
++		C.size_t(blockSize),
++		pbase(dst[:blockSize]),
++		C.size_t(blockSize),
++		&outLength,
++	)
++	if status != C.kCCSuccess {
++		panic("crypto/des: decryption failed")
++	}
++}
++
++// CBC mode encrypter
++func (c *desCipher) NewCBCEncrypter(iv []byte) cipher.BlockMode {
++	return newCBC(C.kCCEncrypt, c.kind, c.key, iv)
++}
++
++// CBC mode decrypter
++func (c *desCipher) NewCBCDecrypter(iv []byte) cipher.BlockMode {
++	return newCBC(C.kCCDecrypt, c.kind, c.key, iv)
++}
+diff --git a/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/ec.go b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/ec.go
+new file mode 100644
+index 00000000000000..e57bde33af4c98
+--- /dev/null
++++ b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/ec.go
+@@ -0,0 +1,32 @@
++// Copyright (c) Microsoft Corporation.
++// Licensed under the MIT License.
++
++//go:build darwin
++
++package xcrypto
++
++func curveToKeySizeInBits(curve string) int {
++	switch curve {
++	case "P-256":
++		return 256
++	case "P-384":
++		return 384
++	case "P-521":
++		return 521
++	default:
++		return 0
++	}
++}
++
++func curveToKeySizeInBytes(curve string) int {
++	switch curve {
++	case "P-256":
++		return (256 + 7) / 8
++	case "P-384":
++		return (384 + 7) / 8
++	case "P-521":
++		return (521 + 7) / 8
++	default:
++		return 0
++	}
++}
+diff --git a/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/ecdh.go b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/ecdh.go
+new file mode 100644
+index 00000000000000..8b9279aa06ad4d
+--- /dev/null
++++ b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/ecdh.go
+@@ -0,0 +1,181 @@
++// Copyright (c) Microsoft Corporation.
++// Licensed under the MIT License.
++
++//go:build darwin
++
++package xcrypto
++
++// #include <Security/Security.h>
++import "C"
++import (
++	"crypto/elliptic"
++	"errors"
++	"math/big"
++	"runtime"
++	"slices"
++)
++
++type PublicKeyECDH struct {
++	_pkey C.SecKeyRef
++	bytes []byte
++}
++
++func (k *PublicKeyECDH) finalize() {
++	if k._pkey != 0 {
++		C.CFRelease(C.CFTypeRef(k._pkey))
++	}
++}
++
++type PrivateKeyECDH struct {
++	_pkey C.SecKeyRef
++}
++
++func (k *PrivateKeyECDH) finalize() {
++	if k._pkey != 0 {
++		C.CFRelease(C.CFTypeRef(k._pkey))
++	}
++}
++
++func NewPublicKeyECDH(curve string, bytes []byte) (*PublicKeyECDH, error) {
++	if len(bytes) < 1 {
++		return nil, errors.New("NewPublicKeyECDH: missing key")
++	}
++	pubKeyRef, err := createSecKeyWithData(bytes, C.kSecAttrKeyTypeECSECPrimeRandom, C.kSecAttrKeyClassPublic)
++	if err != nil {
++		return nil, err
++	}
++	pubKey := &PublicKeyECDH{*pubKeyRef, slices.Clone(bytes)}
++	runtime.SetFinalizer(pubKey, (*PublicKeyECDH).finalize)
++	return pubKey, nil
++}
++
++func (k *PublicKeyECDH) Bytes() []byte { return k.bytes }
++
++func NewPrivateKeyECDH(curve string, bytes []byte) (*PrivateKeyECDH, error) {
++	encodedKey, err := encodePrivateComponent(bytes, curve)
++	if err != nil {
++		return nil, err
++	}
++	privKeyRef, err := createSecKeyWithData(encodedKey, C.kSecAttrKeyTypeECSECPrimeRandom, C.kSecAttrKeyClassPrivate)
++	if err != nil {
++		return nil, err
++	}
++	privKey := &PrivateKeyECDH{*privKeyRef}
++	runtime.SetFinalizer(privKey, (*PrivateKeyECDH).finalize)
++	return privKey, nil
++}
++
++func (k *PrivateKeyECDH) PublicKey() (*PublicKeyECDH, error) {
++	defer runtime.KeepAlive(k)
++	pubKeyRef := C.SecKeyCopyPublicKey(k._pkey)
++	if pubKeyRef == 0 {
++		return nil, errors.New("failed to extract public key")
++	}
++	pubBytes, err := getEncodedECDHPublicKey(pubKeyRef)
++	if err != nil {
++		C.CFRelease(C.CFTypeRef(pubKeyRef))
++		return nil, err
++	}
++	pubKey := &PublicKeyECDH{pubKeyRef, pubBytes}
++	runtime.SetFinalizer(pubKey, (*PublicKeyECDH).finalize)
++	return pubKey, nil
++}
++
++func ECDH(priv *PrivateKeyECDH, pub *PublicKeyECDH) ([]byte, error) {
++	defer runtime.KeepAlive(priv)
++	defer runtime.KeepAlive(pub)
++
++	var algorithm C.CFStringRef = C.kSecKeyAlgorithmECDHKeyExchangeStandard
++
++	supported := C.SecKeyIsAlgorithmSupported(priv._pkey, C.kSecKeyOperationTypeKeyExchange, algorithm)
++	if supported == 0 {
++		return nil, errors.New("ECDH algorithm not supported for the given private key")
++	}
++
++	var cfErr C.CFErrorRef
++	// Perform the key exchange
++	sharedSecretRef := C.SecKeyCopyKeyExchangeResult(
++		priv._pkey,
++		algorithm,
++		pub._pkey,
++		C.CFDictionaryRef(0),
++		&cfErr,
++	)
++	if goCFErrorRef(cfErr) != nil {
++		return nil, goCFErrorRef(cfErr)
++	}
++	defer C.CFRelease(C.CFTypeRef(sharedSecretRef))
++
++	sharedSecret := cfDataToBytes(sharedSecretRef)
++	return sharedSecret, nil
++}
++
++func GenerateKeyECDH(curve string) (*PrivateKeyECDH, []byte, error) {
++	keySize := curveToKeySizeInBytes(curve)
++	if keySize == 0 {
++		return nil, nil, errors.New("unsupported curve")
++	}
++
++	keySizeInBits := curveToKeySizeInBits(curve)
++	// Generate the private key and get its DER representation
++	privKeyDER, privKeyRef, err := createSecKeyRandom(C.kSecAttrKeyTypeECSECPrimeRandom, keySizeInBits)
++	if err != nil {
++		return nil, nil, err
++	}
++	bytes, err := extractPrivateComponent(privKeyDER, keySize)
++	if err != nil {
++		C.CFRelease(C.CFTypeRef(privKeyRef))
++		return nil, nil, err
++	}
++	k := &PrivateKeyECDH{privKeyRef}
++	runtime.SetFinalizer(k, (*PrivateKeyECDH).finalize)
++	return k, bytes, nil
++}
++
++func getEncodedECDHPublicKey(key C.SecKeyRef) ([]byte, error) {
++	pubDataRef := C.SecKeyCopyExternalRepresentation(key, nil)
++	if pubDataRef == 0 {
++		return nil, errors.New("xcrypto: failed to encode public key")
++	}
++	defer C.CFRelease(C.CFTypeRef(pubDataRef))
++	pubBytes := cfDataToBytes(pubDataRef)
++	return pubBytes, nil
++}
++
++func extractPrivateComponent(der []byte, keySize int) ([]byte, error) {
++	// The private component is the last of the three equally-sized chunks
++	// for the elliptic curve private key.
++	if len(der) < keySize*3 {
++		return nil, errors.New("invalid key length: insufficient data for private component")
++	}
++	// Extract the private component
++	privateComponent := der[keySize*2 : keySize*3]
++	return privateComponent, nil
++}
++
++func encodePrivateComponent(privateComponent []byte, curve string) ([]byte, error) {
++	keySize := curveToKeySizeInBytes(curve)
++	if len(privateComponent) != keySize {
++		return nil, errors.New("invalid key length: private component size does not match expected key size for the given curve")
++	}
++	// generate public key from privateComponent
++	var p elliptic.Curve
++	switch curve {
++	case "P-256":
++		p = elliptic.P256()
++	case "P-384":
++		p = elliptic.P384()
++	case "P-521":
++		p = elliptic.P521()
++	default:
++		return nil, errors.New("unsupported curve")
++	}
++
++	// curve.ScalarBaseMult is deprecated unless using the built-in curves namely P-256, P-384, P-521.
++	x, y := p.ScalarBaseMult(privateComponent)
++	encodedKey, err := encodeToUncompressedAnsiX963Key(x, y, new(big.Int).SetBytes(privateComponent), keySize)
++	if err != nil {
++		return nil, errors.New("failed to encode public key to uncompressed ANSI X9.63 format")
++	}
++	return encodedKey, nil
++}
+diff --git a/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/ecdsa.go b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/ecdsa.go
+new file mode 100644
+index 00000000000000..642733e84ccbf1
+--- /dev/null
++++ b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/ecdsa.go
+@@ -0,0 +1,173 @@
++// Copyright (c) Microsoft Corporation.
++// Licensed under the MIT License.
++
++//go:build darwin
++
++package xcrypto
++
++// #include <Security/Security.h>
++import "C"
++import (
++	"errors"
++	"math/big"
++	"runtime"
++)
++
++type PrivateKeyECDSA struct {
++	_pkey C.SecKeyRef
++}
++
++func (k *PrivateKeyECDSA) finalize() {
++	if k._pkey != 0 {
++		C.CFRelease(C.CFTypeRef(k._pkey))
++	}
++}
++
++func (k *PrivateKeyECDSA) withKey(f func(C.SecKeyRef) C.int) C.int {
++	defer runtime.KeepAlive(k)
++	return f(k._pkey)
++}
++
++type PublicKeyECDSA struct {
++	_pkey C.SecKeyRef
++}
++
++func (k *PublicKeyECDSA) finalize() {
++	if k._pkey != 0 {
++		C.CFRelease(C.CFTypeRef(k._pkey))
++	}
++}
++
++func (k *PublicKeyECDSA) withKey(f func(C.SecKeyRef) C.int) C.int {
++	defer runtime.KeepAlive(k)
++	return f(k._pkey)
++}
++
++func NewPublicKeyECDSA(curve string, x, y BigInt) (*PublicKeyECDSA, error) {
++	keySize := curveToKeySizeInBytes(curve)
++	if keySize == 0 {
++		return nil, errors.New("unsupported curve")
++	}
++	encodedKey, err := encodeToUncompressedAnsiX963Key(x, y, nil, keySize)
++	if err != nil {
++		return nil, errors.New("failed to encode public key to uncompressed ANSI X9.63 format")
++	}
++
++	pubKeyRef, err := createSecKeyWithData(encodedKey, C.kSecAttrKeyTypeECSECPrimeRandom, C.kSecAttrKeyClassPublic)
++	if err != nil {
++		return nil, err
++	}
++
++	pubKey := &PublicKeyECDSA{_pkey: *pubKeyRef}
++	runtime.SetFinalizer(pubKey, (*PublicKeyECDSA).finalize)
++	return pubKey, nil
++}
++
++// NewPrivateKeyECDSA creates a new ECDSA private key using the provided curve name and parameters (x, y, d).
++func NewPrivateKeyECDSA(curve string, x, y, d BigInt) (*PrivateKeyECDSA, error) {
++	keySize := curveToKeySizeInBytes(curve)
++	if keySize == 0 {
++		return nil, errors.New("unsupported curve")
++	}
++	encodedKey, err := encodeToUncompressedAnsiX963Key(x, y, d, keySize)
++	if err != nil {
++		return nil, errors.New("crypto/ecdsa: failed to encode private key: " + err.Error())
++	}
++
++	privKeyRef, err := createSecKeyWithData(encodedKey, C.kSecAttrKeyTypeECSECPrimeRandom, C.kSecAttrKeyClassPrivate)
++	if err != nil {
++		return nil, err
++	}
++
++	// Wrap and finalize
++	k := &PrivateKeyECDSA{_pkey: *privKeyRef}
++	runtime.SetFinalizer(k, (*PrivateKeyECDSA).finalize)
++	return k, nil
++}
++
++func GenerateKeyECDSA(curve string) (x, y, d BigInt, err error) {
++	keySize := curveToKeySizeInBytes(curve)
++	if keySize == 0 {
++		return nil, nil, nil, errors.New("unsupported curve")
++	}
++
++	keySizeInBits := curveToKeySizeInBits(curve)
++	privKeyDER, privKeyRef, err := createSecKeyRandom(C.kSecAttrKeyTypeECSECPrimeRandom, keySizeInBits)
++	defer C.CFRelease(C.CFTypeRef(privKeyRef))
++	if err != nil {
++		return nil, nil, nil, err
++	}
++	return decodeFromUncompressedAnsiX963Key(privKeyDER, keySize)
++}
++
++func SignMarshalECDSA(priv *PrivateKeyECDSA, hashed []byte) ([]byte, error) {
++	return evpSign(priv.withKey, algorithmTypeECDSA, 0, hashed)
++}
++
++func VerifyECDSA(pub *PublicKeyECDSA, hashed []byte, sig []byte) bool {
++	return evpVerify(pub.withKey, algorithmTypeECDSA, 0, hashed, sig) == nil
++}
++
++// encodeToUncompressedAnsiX963Key encodes the given elliptic curve point (x, y) and optional private key (d)
++// into an uncompressed ANSI X9.63 format byte slice.
++func encodeToUncompressedAnsiX963Key(x, y, d BigInt, keySize int) ([]byte, error) {
++	// Build the uncompressed key point (0x04 || x || y { || d })
++	size := 1 + keySize*2
++	if d != nil {
++		size += keySize
++	}
++	out := make([]byte, size)
++	out[0] = 0x04
++	err := encodeBigInt(out[1:], []sizedBigInt{
++		{x, keySize}, {y, keySize},
++		{d, keySize},
++	})
++	if err != nil {
++		return nil, err
++	}
++	return out, nil
++}
++
++// decodeFromUncompressedAnsiX963Key decodes the given uncompressed ANSI X9.63 format byte slice into
++// the elliptic curve point (x, y) and optional private key (d).
++func decodeFromUncompressedAnsiX963Key(key []byte, keySize int) (x, y, d BigInt, err error) {
++	if len(key) < 1 || key[0] != 0x04 {
++		return nil, nil, nil, errors.New("invalid uncompressed key format")
++	}
++	if len(key) < 1+keySize*2 {
++		return nil, nil, nil, errors.New("invalid key length")
++	}
++	x = new(big.Int).SetBytes(key[1 : 1+keySize])
++	y = new(big.Int).SetBytes(key[1+keySize : 1+keySize*2])
++	if len(key) > 1+keySize*2 {
++		d := new(big.Int).SetBytes(key[1+keySize*2:])
++		return x, y, d, nil
++	}
++	return x, y, nil, nil
++}
++
++// sizedBigInt defines a big integer with
++// a size that can be different from the
++// one provided by len(b).
++type sizedBigInt struct {
++	b    BigInt
++	size int
++}
++
++// encodeBigInt encodes ints into data.
++// It stops iterating over ints when it finds one nil element.
++func encodeBigInt(data []byte, ints []sizedBigInt) error {
++	for _, v := range ints {
++		if v.b == nil {
++			return nil
++		}
++		// b might be shorter than size if the original big number contained leading zeros.
++		leadingZeros := int(v.size) - (v.b.BitLen()+7)/8
++		if leadingZeros < 0 {
++			return errors.New("commoncrypto: invalid parameters")
++		}
++		copy(data[leadingZeros:], v.b.Bytes())
++		data = data[v.size:]
++	}
++	return nil
++}
+diff --git a/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/ed25519.go b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/ed25519.go
+new file mode 100644
+index 00000000000000..755710b0b84979
+--- /dev/null
++++ b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/ed25519.go
+@@ -0,0 +1,100 @@
++// Copyright (c) Microsoft Corporation.
++// Licensed under the MIT License.
++
++//go:build darwin
++
++package xcrypto
++
++import (
++	"strconv"
++
++	"github.com/microsoft/go-crypto-darwin/internal/cryptokit"
++)
++
++const (
++	// publicKeySizeEd25519 is the size, in bytes, of public keys as used in crypto/ed25519.
++	publicKeySizeEd25519 = 32
++	// privateKeySizeEd25519 is the size, in bytes, of private keys as used in crypto/ed25519.
++	privateKeySizeEd25519 = 64
++	// signatureSizeEd25519 is the size, in bytes, of signatures generated and verified by crypto/ed25519.
++	signatureSizeEd25519 = 64
++	// seedSizeEd25519 is the size, in bytes, of private key seeds. These are the private key representations used by RFC 8032.
++	seedSizeEd25519 = 32
++)
++
++// PublicKeyEd25519 represents an Ed25519 public key.
++type PublicKeyEd25519 []byte
++
++// PrivateKeyEd25519 represents an Ed25519 private key.
++type PrivateKeyEd25519 []byte
++
++func (k PrivateKeyEd25519) Public() PublicKeyEd25519 {
++	publicKey := make([]byte, publicKeySizeEd25519)
++	copy(publicKey, k[seedSizeEd25519:])
++	return PublicKeyEd25519(publicKey)
++}
++
++// GenerateKeyEd25519 generates a new Ed25519 private key.
++func GenerateKeyEd25519() PrivateKeyEd25519 {
++	pkeyPriv := make([]byte, privateKeySizeEd25519)
++	cryptokit.GenerateKeyEd25519(pkeyPriv)
++	return pkeyPriv
++}
++
++func NewPrivateKeyEd25519(priv []byte) (PrivateKeyEd25519, error) {
++	if len(priv) != privateKeySizeEd25519 {
++		panic("ed25519: bad private key length: " + strconv.Itoa(len(priv)))
++	}
++	return NewPrivateKeyEd25519FromSeed(priv[:seedSizeEd25519])
++}
++
++func (k PrivateKeyEd25519) Bytes() ([]byte, error) {
++	return k, nil
++}
++
++func NewPublicKeyEd25519(pub []byte) (PublicKeyEd25519, error) {
++	if len(pub) != publicKeySizeEd25519 {
++		panic("ed25519: bad public key length: " + strconv.Itoa(len(pub)))
++	}
++	pkey := make([]byte, publicKeySizeEd25519)
++	err := cryptokit.NewPublicKeyEd25519(pkey, pub)
++	if err != nil {
++		return nil, err
++	}
++	return pkey, nil
++}
++
++func (k PublicKeyEd25519) Bytes() ([]byte, error) {
++	return k, nil
++}
++
++// NewPrivateKeyEd25519FromSeed calculates a private key from a seed. It will panic if
++// len(seed) is not [SeedSize]. RFC 8032's private keys correspond to seeds in this
++// package.
++// NewPrivateKeyEd25519FromSeed creates an Ed25519 private key from a seed.
++func NewPrivateKeyEd25519FromSeed(seed []byte) (PrivateKeyEd25519, error) {
++	if len(seed) != seedSizeEd25519 {
++		panic("ed25519: bad seed length: " + strconv.Itoa(len(seed)))
++	}
++	pkey := make([]byte, privateKeySizeEd25519)
++	err := cryptokit.NewPrivateKeyEd25519FromSeed(pkey, seed)
++	if err != nil {
++		return nil, err
++	}
++	return pkey, nil
++}
++
++// SignEd25519 signs the message with priv and returns a signature.
++func SignEd25519(priv PrivateKeyEd25519, message []byte) ([]byte, error) {
++	sig := make([]byte, signatureSizeEd25519)
++	err := cryptokit.SignEd25519(sig, priv, message)
++	if err != nil {
++		return nil, err
++	}
++	return sig, nil
++}
++
++// VerifyEd25519 reports whether sig is a valid signature of message by pub.
++func VerifyEd25519(pub PublicKeyEd25519, message, sig []byte) error {
++	return cryptokit.VerifyEd25519(pub, message, sig)
++}
+diff --git a/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/evp.go b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/evp.go
+new file mode 100644
+index 00000000000000..c31f1e25f06646
+--- /dev/null
++++ b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/evp.go
+@@ -0,0 +1,338 @@
++// Copyright (c) Microsoft Corporation.
++// Licensed under the MIT License.
++
++//go:build darwin
++
++package xcrypto
++
++// #include <Security/Security.h>
++import "C"
++import (
++	"crypto"
++	"errors"
++	"hash"
++	"unsafe"
++)
++
++type algorithmType int
++
++const (
++	algorithmTypePSS algorithmType = iota
++	algorithmTypeRAW
++	algorithmTypePKCS1v15Enc
++	algorithmTypePKCS1v15Sig
++	algorithmTypeOAEP
++	algorithmTypeECDSA
++)
++
++// Algorithm maps for translating crypto.Hash to SecKeyAlgorithm.
++var (
++	rsaRaw = map[crypto.Hash]C.CFStringRef{
++		0: C.kSecKeyAlgorithmRSAEncryptionRaw,
++	}
++	rsaPKCS1v15Algorithms = map[crypto.Hash]C.CFStringRef{
++		crypto.SHA1:   C.kSecKeyAlgorithmRSASignatureDigestPKCS1v15SHA1,
++		crypto.SHA224: C.kSecKeyAlgorithmRSASignatureDigestPKCS1v15SHA224,
++		crypto.SHA256: C.kSecKeyAlgorithmRSASignatureDigestPKCS1v15SHA256,
++		crypto.SHA384: C.kSecKeyAlgorithmRSASignatureDigestPKCS1v15SHA384,
++		crypto.SHA512: C.kSecKeyAlgorithmRSASignatureDigestPKCS1v15SHA512,
++		0:             C.kSecKeyAlgorithmRSASignatureRaw,
++	}
++	rsaPSSAlgorithms = map[crypto.Hash]C.CFStringRef{
++		crypto.SHA1:   C.kSecKeyAlgorithmRSASignatureDigestPSSSHA1,
++		crypto.SHA224: C.kSecKeyAlgorithmRSASignatureDigestPSSSHA224,
++		crypto.SHA256: C.kSecKeyAlgorithmRSASignatureDigestPSSSHA256,
++		crypto.SHA384: C.kSecKeyAlgorithmRSASignatureDigestPSSSHA384,
++		crypto.SHA512: C.kSecKeyAlgorithmRSASignatureDigestPSSSHA512,
++	}
++	rsaOAEPAlgorithms = map[crypto.Hash]C.CFStringRef{
++		crypto.SHA1:   C.kSecKeyAlgorithmRSAEncryptionOAEPSHA1,
++		crypto.SHA224: C.kSecKeyAlgorithmRSAEncryptionOAEPSHA224,
++		crypto.SHA256: C.kSecKeyAlgorithmRSAEncryptionOAEPSHA256,
++		crypto.SHA384: C.kSecKeyAlgorithmRSAEncryptionOAEPSHA384,
++		crypto.SHA512: C.kSecKeyAlgorithmRSAEncryptionOAEPSHA512,
++	}
++)
++
++type withKeyFunc func(func(C.SecKeyRef) C.int) C.int
++
++// Encrypt encrypts a plaintext message using a given key and algorithm.
++func evpEncrypt(withKey withKeyFunc, algorithmType algorithmType, plaintext []byte, hash hash.Hash) ([]byte, error) {
++	var cryptoHash crypto.Hash
++	if hash != nil {
++		var err error
++		cryptoHash, err = hashToCryptoHash(hash)
++		if err != nil {
++			return nil, err
++		}
++	}
++	algorithm, err := selectAlgorithm(cryptoHash, algorithmType)
++	if err != nil {
++		return nil, err
++	}
++
++	dataRef := bytesToCFData(plaintext)
++	defer cfRelease(unsafe.Pointer(dataRef))
++
++	var encryptedDataRef C.CFDataRef
++	result := withKey(func(key C.SecKeyRef) C.int {
++		if C.SecKeyIsAlgorithmSupported(key, C.kSecKeyOperationTypeEncrypt, algorithm) != 1 {
++			return -1 // Algorithm not supported by the key
++		}
++		encryptedDataRef = C.SecKeyCreateEncryptedData(key, algorithm, dataRef, nil)
++		if encryptedDataRef == 0 {
++			return -1 // Encryption failed
++		}
++		return 0
++	})
++	if result != 0 {
++		return nil, errors.New("encryption failed")
++	}
++	defer cfRelease(unsafe.Pointer(encryptedDataRef))
++
++	return cfDataToBytes(encryptedDataRef), nil
++}
++
++// Decrypt decrypts a ciphertext using a given key and algorithm.
++func evpDecrypt(withKey withKeyFunc, algorithmType algorithmType, ciphertext []byte, hash hash.Hash) ([]byte, error) {
++	var cryptoHash crypto.Hash
++	if hash != nil {
++		var err error
++		cryptoHash, err = hashToCryptoHash(hash)
++		if err != nil {
++			return nil, err
++		}
++	}
++	algorithm, err := selectAlgorithm(cryptoHash, algorithmType)
++	if err != nil {
++		return nil, err
++	}
++
++	msg := bytesToCFData(ciphertext)
++
++	var decryptedDataRef C.CFDataRef
++	var cfErr C.CFErrorRef
++	result := withKey(func(key C.SecKeyRef) C.int {
++		if C.SecKeyIsAlgorithmSupported(key, C.kSecKeyOperationTypeDecrypt, algorithm) != 1 {
++			return -1 // Algorithm not supported by the key
++		}
++		decryptedDataRef = C.SecKeyCreateDecryptedData(key, algorithm, msg, &cfErr)
++		if decryptedDataRef == 0 {
++			return -1 // Decryption failed
++		}
++		return 0 // Success
++	})
++
++	if goCFErrorRef(cfErr) != nil {
++		return nil, goCFErrorRef(cfErr)
++	}
++
++	if result != 0 || decryptedDataRef == 0 {
++		return nil, errors.New("decryption failed")
++	}
++	defer cfRelease(unsafe.Pointer(decryptedDataRef))
++
++	return cfDataToBytes(decryptedDataRef), nil
++}
++
++func evpSign(withKey withKeyFunc, algorithmType algorithmType, hash crypto.Hash, hashed []byte) ([]byte, error) {
++	algorithm, err := selectAlgorithm(hash, algorithmType)
++	if err != nil {
++		return nil, err
++	}
++
++	var signedDataRef C.CFDataRef
++	var cfErr C.CFErrorRef
++	result := withKey(func(key C.SecKeyRef) C.int {
++		if C.SecKeyIsAlgorithmSupported(key, C.kSecKeyOperationTypeSign, algorithm) != 1 {
++			return -1 // Algorithm not supported by the key
++		}
++		signedDataRef = C.SecKeyCreateSignature(key, algorithm, bytesToCFData(hashed), &cfErr)
++		if signedDataRef == 0 {
++			return -1 // Signing failed
++		}
++		return 0 // Success
++	})
++
++	if goCFErrorRef(cfErr) != nil {
++		return nil, goCFErrorRef(cfErr)
++	}
++
++	if result != 0 || signedDataRef == 0 {
++		return nil, errors.New("signing failed")
++	}
++	defer cfRelease(unsafe.Pointer(signedDataRef))
++
++	return cfDataToBytes(signedDataRef), nil
++}
++
++func evpVerify(withKey withKeyFunc, algorithmType algorithmType, hash crypto.Hash, hashed, signature []byte) error {
++	algorithm, err := selectAlgorithm(hash, algorithmType)
++	if err != nil {
++		return err
++	}
++
++	var cfErr C.CFErrorRef
++	result := withKey(func(key C.SecKeyRef) C.int {
++		if C.SecKeyIsAlgorithmSupported(key, C.kSecKeyOperationTypeVerify, algorithm) != 1 {
++			return -1 // Algorithm not supported by the key
++		}
++		if C.SecKeyVerifySignature(key, algorithm, bytesToCFData(hashed), bytesToCFData(signature), &cfErr) != 1 {
++			return -1 // Verification failed
++		}
++		return 0 // Success
++	})
++
++	if goCFErrorRef(cfErr) != nil {
++		return goCFErrorRef(cfErr)
++	}
++
++	if result != 0 {
++		return errors.New("verification failed")
++	}
++	return nil
++}
++
++// hashToCryptoHash converts a hash.Hash to a crypto.Hash.
++func hashToCryptoHash(hash hash.Hash) (crypto.Hash, error) {
++	switch hash.(type) {
++	case *sha1Hash:
++		return crypto.SHA1, nil
++	case *sha224Hash:
++		return crypto.SHA224, nil
++	case *sha256Hash:
++		return crypto.SHA256, nil
++	case *sha384Hash:
++		return crypto.SHA384, nil
++	case *sha512Hash:
++		return crypto.SHA512, nil
++	default:
++		return 0, errors.New("unsupported hash function")
++	}
++}
++
++// selectAlgorithm selects the appropriate SecKeyAlgorithm based on hash and algorithm type.
++func selectAlgorithm(hash crypto.Hash, algorithmType algorithmType) (C.CFStringRef, error) {
++	var algorithmMap map[crypto.Hash]C.CFStringRef
++	switch algorithmType {
++	case algorithmTypePSS:
++		algorithmMap = rsaPSSAlgorithms
++	case algorithmTypeRAW:
++		algorithmMap = rsaRaw
++	case algorithmTypePKCS1v15Enc:
++		return C.kSecKeyAlgorithmRSAEncryptionPKCS1, nil
++	case algorithmTypePKCS1v15Sig:
++		algorithmMap = rsaPKCS1v15Algorithms
++	case algorithmTypeOAEP:
++		algorithmMap = rsaOAEPAlgorithms
++	case algorithmTypeECDSA:
++		return C.kSecKeyAlgorithmECDSASignatureDigestX962, nil
++	default:
++		return 0, errors.New("unsupported algorithm type")
++	}
++
++	algorithm, ok := algorithmMap[hash]
++	if !ok {
++		return 0, errors.New("unsupported combination of algorithm type and hash")
++	}
++
++	return algorithm, nil
++}
++
++// bytesToCFData turns a byte slice into a CFDataRef. Caller then "owns" the
++// CFDataRef and must CFRelease the CFDataRef when done.
++func bytesToCFData(buf []byte) C.CFDataRef {
++	return C.CFDataCreate(C.kCFAllocatorDefault, (*C.UInt8)(unsafe.Pointer(&buf[0])), C.CFIndex(len(buf)))
++}
++
++// cfDataToBytes turns a CFDataRef into a byte slice.
++func cfDataToBytes(cfData C.CFDataRef) []byte {
++	return C.GoBytes(unsafe.Pointer(C.CFDataGetBytePtr(cfData)), C.int(C.CFDataGetLength(cfData)))
++}
++
++// cfRelease releases a CoreFoundation object.
++func cfRelease(ref unsafe.Pointer) {
++	C.CFRelease(C.CFTypeRef(ref))
++}
++
++// createSecKeyWithData creates a SecKey from the provided encoded key and attributes dictionary.
++func createSecKeyWithData(encodedKey []byte, keyType, keyClass C.CFStringRef) (*C.SecKeyRef, error) {
++	encodedKeyCF := C.CFDataCreate(C.kCFAllocatorDefault, base(encodedKey), C.CFIndex(len(encodedKey)))
++	if encodedKeyCF == 0 {
++		return nil, errors.New("xcrypto: failed to create CFData for private key")
++	}
++	defer C.CFRelease(C.CFTypeRef(encodedKeyCF))
++
++	attrKeys := []C.CFTypeRef{
++		C.CFTypeRef(C.kSecAttrKeyType),
++		C.CFTypeRef(C.kSecAttrKeyClass),
++	}
++
++	attrValues := []C.CFTypeRef{
++		C.CFTypeRef(keyType),
++		C.CFTypeRef(keyClass),
++	}
++
++	// Create attributes dictionary for the key
++	attrDict := C.CFDictionaryCreate(
++		C.kCFAllocatorDefault,
++		(*unsafe.Pointer)(unsafe.Pointer(&attrKeys[0])),
++		(*unsafe.Pointer)(unsafe.Pointer(&attrValues[0])),
++		C.CFIndex(len(attrKeys)),
++		nil,
++		nil,
++	)
++	if attrDict == 0 {
++		return nil, errors.New("xcrypto: failed to create attributes dictionary")
++	}
++	defer C.CFRelease(C.CFTypeRef(attrDict))
++
++	// Generate the SecKey
++	var errorRef C.CFErrorRef
++	key := C.SecKeyCreateWithData(encodedKeyCF, attrDict, &errorRef)
++	if goCFErrorRef(errorRef) != nil {
++		return nil, goCFErrorRef(errorRef)
++	}
++	return &key, nil
++}
++
++// createSecKeyRandom creates a new SecKey with the provided attributes dictionary.
++func createSecKeyRandom(keyType C.CFStringRef, keySize int) ([]byte, C.SecKeyRef, error) {
++	keyAttrs := C.CFDictionaryCreateMutable(C.kCFAllocatorDefault, 0, nil, nil)
++	if keyAttrs == 0 {
++		return nil, 0, errors.New("failed to create key attributes dictionary")
++	}
++	defer C.CFRelease(C.CFTypeRef(keyAttrs))
++
++	C.CFDictionarySetValue(
++		keyAttrs,
++		unsafe.Pointer(C.kSecAttrKeyType),
++		unsafe.Pointer(keyType),
++	)
++
++	C.CFDictionarySetValue(
++		keyAttrs,
++		unsafe.Pointer(C.kSecAttrKeySizeInBits),
++		unsafe.Pointer(C.CFNumberCreate(C.kCFAllocatorDefault, C.kCFNumberIntType, unsafe.Pointer(&keySize))),
++	)
++
++	// Generate the private key
++	var errorRef C.CFErrorRef
++	var privKeyRef C.SecKeyRef = C.SecKeyCreateRandomKey(C.CFDictionaryRef(keyAttrs), &errorRef)
++	if goCFErrorRef(errorRef) != nil {
++		return nil, 0, goCFErrorRef(errorRef)
++	}
++
++	// Export the private key as DER
++	privData := C.SecKeyCopyExternalRepresentation(privKeyRef, &errorRef)
++	if goCFErrorRef(errorRef) != nil {
++		return nil, 0, goCFErrorRef(errorRef)
++	}
++	defer C.CFRelease(C.CFTypeRef(privData))
++
++	privKeyDER := cfDataToBytes(privData)
++	if privKeyDER == nil {
++		return nil, 0, errors.New("failed to convert CFData to bytes")
++	}
++	return privKeyDER, privKeyRef, nil
++}
+diff --git a/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/hash.go b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/hash.go
+new file mode 100644
+index 00000000000000..12bb064483b850
+--- /dev/null
++++ b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/hash.go
+@@ -0,0 +1,336 @@
++// Copyright (c) Microsoft Corporation.
++// Licensed under the MIT License.
++
++//go:build darwin
++
++package xcrypto
++
++// #include <CommonCrypto/CommonCrypto.h>
++import "C"
++import (
++	"crypto"
++	"errors"
++	"hash"
++	"runtime"
++	"unsafe"
++)
++
++// NOTE: Implementation ported from https://go-review.googlesource.com/c/go/+/404295.
++// The cgo calls in this file are arranged to avoid marking the parameters as escaping.
++// To do that, we call noescape (including via addr).
++// We must also make sure that the data pointer arguments have the form unsafe.Pointer(&...)
++// so that cgo does not annotate them with cgoCheckPointer calls. If it did that, it might look
++// beyond the byte slice and find Go pointers in unprocessed parts of a larger allocation.
++// To do both of these simultaneously, the idiom is unsafe.Pointer(&*addr(p)),
++// where addr returns the base pointer of p, substituting a non-nil pointer for nil,
++// and applying a noescape along the way.
++// This is all to preserve compatibility with the allocation behavior of the non-commoncrypto implementations.
++
++// SupportsHash returns true if a hash.Hash implementation is supported for h.
++func SupportsHash(h crypto.Hash) bool {
++	switch h {
++	case crypto.MD4, crypto.MD5, crypto.SHA1, crypto.SHA224, crypto.SHA256, crypto.SHA384, crypto.SHA512:
++		return true
++	default:
++		return false
++	}
++}
++
++func MD4(p []byte) (sum [16]byte) {
++	result := C.CC_MD4(unsafe.Pointer(&*addr(p)), C.CC_LONG(len(p)), (*C.uchar)(&*addr(sum[:])))
++	if result == nil {
++		panic("commoncrypto: MD4 failed")
++	}
++	return
++}
++
++func MD5(p []byte) (sum [16]byte) {
++	result := C.CC_MD5(unsafe.Pointer(&*addr(p)), C.CC_LONG(len(p)), (*C.uchar)(&*addr(sum[:])))
++	if result == nil {
++		panic("commoncrypto: MD5 failed")
++	}
++	return
++}
++
++func SHA1(p []byte) (sum [20]byte) {
++	result := C.CC_SHA1(unsafe.Pointer(&*addr(p)), C.CC_LONG(len(p)), (*C.uchar)(&*addr(sum[:])))
++	if result == nil {
++		panic("commoncrypto: SHA1 failed")
++	}
++	return
++}
++
++func SHA224(p []byte) (sum [28]byte) {
++	result := C.CC_SHA224(unsafe.Pointer(&*addr(p)), C.CC_LONG(len(p)), (*C.uchar)(&*addr(sum[:])))
++	if result == nil {
++		panic("commoncrypto: SHA224 failed")
++	}
++	return
++}
++
++func SHA256(p []byte) (sum [32]byte) {
++	result := C.CC_SHA256(unsafe.Pointer(&*addr(p)), C.CC_LONG(len(p)), (*C.uchar)(&*addr(sum[:])))
++	if result == nil {
++		panic("commoncrypto: SHA256 failed")
++	}
++	return
++}
++
++func SHA384(p []byte) (sum [48]byte) {
++	result := C.CC_SHA384(unsafe.Pointer(&*addr(p)), C.CC_LONG(len(p)), (*C.uchar)(&*addr(sum[:])))
++	if result == nil {
++		panic("commoncrypto: SHA384 failed")
++	}
++	return
++}
++
++func SHA512(p []byte) (sum [64]byte) {
++	result := C.CC_SHA512(unsafe.Pointer(&*addr(p)), C.CC_LONG(len(p)), (*C.uchar)(&*addr(sum[:])))
++	if result == nil {
++		panic("commoncrypto: SHA512 failed")
++	}
++	return
++}
++
++type evpHash struct {
++	ctx unsafe.Pointer
++	// ctx2 is used in evpHash.sum to avoid changing
++	// the state of ctx. Having it here allows reusing the
++	// same allocated object multiple times.
++	ctx2      unsafe.Pointer
++	init      func(ctx unsafe.Pointer) C.int
++	update    func(ctx unsafe.Pointer, data []byte) C.int
++	final     func(ctx unsafe.Pointer, digest []byte) C.int
++	blockSize int
++	size      int
++	ctxSize   int
++}
++
++func newEvpHash(init func(ctx unsafe.Pointer) C.int, update func(ctx unsafe.Pointer, data []byte) C.int, final func(ctx unsafe.Pointer, digest []byte) C.int, ctxSize, blockSize, size int) *evpHash {
++	ctx := C.malloc(C.size_t(ctxSize))
++	ctx2 := C.malloc(C.size_t(ctxSize))
++	init(ctx)
++	h := &evpHash{
++		ctx:       ctx,
++		ctx2:      ctx2,
++		init:      init,
++		update:    update,
++		final:     final,
++		blockSize: blockSize,
++		size:      size,
++		ctxSize:   ctxSize,
++	}
++	runtime.SetFinalizer(h, (*evpHash).finalize)
++	return h
++}
++
++func (h *evpHash) finalize() {
++	C.free(h.ctx)
++	C.free(h.ctx2)
++}
++
++func (h *evpHash) Reset() {
++	// There is no need to reset h.ctx2 because it is always reset after
++	// use in evpHash.sum.
++	h.init(h.ctx)
++	runtime.KeepAlive(h)
++}
++
++func (h *evpHash) Write(p []byte) (int, error) {
++	if len(p) > 0 {
++		// Use a local variable to prevent the compiler from misinterpreting the pointer
++		data := p
++		if h.update(h.ctx, data) != 1 {
++			return 0, errors.New("commoncrypto: Update function failed")
++		}
++	}
++	runtime.KeepAlive(h) // Ensure the hash object is not garbage-collected
++	return len(p), nil
++}
++
++func (h *evpHash) WriteString(s string) (int, error) {
++	if len(s) > 0 {
++		data := []byte(s)
++		if h.update(h.ctx, data) != 1 {
++			return 0, errors.New("commoncrypto: Update function failed")
++		}
++	}
++	runtime.KeepAlive(h)
++	return len(s), nil
++}
++
++func (h *evpHash) WriteByte(c byte) error {
++	if h.update(h.ctx, []byte{c}) != 1 {
++		return errors.New("commoncrypto: Update function failed")
++	}
++	runtime.KeepAlive(h)
++	return nil
++}
++func (h *evpHash) Size() int {
++	return h.size
++}
++
++func (h *evpHash) BlockSize() int {
++	return h.blockSize
++}
++
++func (h *evpHash) Sum(b []byte) []byte {
++	digest := make([]byte, h.size)
++	C.memcpy(h.ctx2, h.ctx, C.size_t(h.ctxSize))
++	h.final(h.ctx2, digest)
++	return append(b, digest...)
++}
++
++type md4Hash struct {
++	*evpHash
++}
++
++// NewMD4 initializes a new MD4 hasher.
++func NewMD4() hash.Hash {
++	return &md4Hash{
++		evpHash: newEvpHash(
++			func(ctx unsafe.Pointer) C.int { return C.CC_MD4_Init((*C.CC_MD4_CTX)(ctx)) },
++			func(ctx unsafe.Pointer, data []byte) C.int {
++				return C.CC_MD4_Update((*C.CC_MD4_CTX)(ctx), unsafe.Pointer(&*addr(data)), C.CC_LONG(len(data)))
++			},
++			func(ctx unsafe.Pointer, digest []byte) C.int {
++				return C.CC_MD4_Final(base(digest), (*C.CC_MD4_CTX)(ctx))
++			},
++			C.sizeof_CC_MD4_CTX,
++			C.CC_MD4_BLOCK_BYTES,
++			C.CC_MD4_DIGEST_LENGTH,
++		),
++	}
++}
++
++type md5Hash struct {
++	*evpHash
++}
++
++// NewMD5 initializes a new MD5 hasher.
++func NewMD5() hash.Hash {
++	return &md5Hash{
++		evpHash: newEvpHash(
++			func(ctx unsafe.Pointer) C.int { return C.CC_MD5_Init((*C.CC_MD5_CTX)(ctx)) },
++			func(ctx unsafe.Pointer, data []byte) C.int {
++				return C.CC_MD5_Update((*C.CC_MD5_CTX)(ctx), unsafe.Pointer(&*addr(data)), C.CC_LONG(len(data)))
++			},
++			func(ctx unsafe.Pointer, digest []byte) C.int {
++				return C.CC_MD5_Final(base(digest), (*C.CC_MD5_CTX)(ctx))
++			},
++			C.sizeof_CC_MD5_CTX,
++			C.CC_MD5_BLOCK_BYTES,
++			C.CC_MD5_DIGEST_LENGTH,
++		),
++	}
++}
++
++type sha1Hash struct {
++	*evpHash
++}
++
++// NewSHA1 initializes a new SHA1 hasher.
++func NewSHA1() hash.Hash {
++	return &sha1Hash{
++		evpHash: newEvpHash(
++			func(ctx unsafe.Pointer) C.int { return C.CC_SHA1_Init((*C.CC_SHA1_CTX)(ctx)) },
++			func(ctx unsafe.Pointer, data []byte) C.int {
++				return C.CC_SHA1_Update((*C.CC_SHA1_CTX)(ctx), unsafe.Pointer(&*addr(data)), C.CC_LONG(len(data)))
++			},
++			func(ctx unsafe.Pointer, digest []byte) C.int {
++				return C.CC_SHA1_Final(base(digest), (*C.CC_SHA1_CTX)(ctx))
++			},
++			C.sizeof_CC_SHA1_CTX,
++			C.CC_SHA1_BLOCK_BYTES,
++			C.CC_SHA1_DIGEST_LENGTH,
++		),
++	}
++}
++
++type sha224Hash struct {
++	*evpHash
++}
++
++// NewSHA224 initializes a new SHA224 hasher.
++func NewSHA224() hash.Hash {
++	return &sha224Hash{
++		evpHash: newEvpHash(
++			func(ctx unsafe.Pointer) C.int { return C.CC_SHA224_Init((*C.CC_SHA256_CTX)(ctx)) },
++			func(ctx unsafe.Pointer, data []byte) C.int {
++				return C.CC_SHA224_Update((*C.CC_SHA256_CTX)(ctx), unsafe.Pointer(&*addr(data)), C.CC_LONG(len(data)))
++			},
++			func(ctx unsafe.Pointer, digest []byte) C.int {
++				return C.CC_SHA224_Final(base(digest), (*C.CC_SHA256_CTX)(ctx))
++			},
++			C.sizeof_CC_SHA256_CTX,
++			C.CC_SHA224_BLOCK_BYTES,
++			C.CC_SHA224_DIGEST_LENGTH,
++		),
++	}
++}
++
++type sha256Hash struct {
++	*evpHash
++}
++
++// NewSHA256 initializes a new SHA256 hasher.
++func NewSHA256() hash.Hash {
++	return &sha256Hash{
++		evpHash: newEvpHash(
++			func(ctx unsafe.Pointer) C.int { return C.CC_SHA256_Init((*C.CC_SHA256_CTX)(ctx)) },
++			func(ctx unsafe.Pointer, data []byte) C.int {
++				return C.CC_SHA256_Update((*C.CC_SHA256_CTX)(ctx), unsafe.Pointer(&*addr(data)), C.CC_LONG(len(data)))
++			},
++			func(ctx unsafe.Pointer, digest []byte) C.int {
++				return C.CC_SHA256_Final(base(digest), (*C.CC_SHA256_CTX)(ctx))
++			},
++			C.sizeof_CC_SHA256_CTX,
++			C.CC_SHA256_BLOCK_BYTES,
++			C.CC_SHA256_DIGEST_LENGTH,
++		),
++	}
++}
++
++type sha384Hash struct {
++	*evpHash
++}
++
++// NewSHA384 initializes a new SHA384 hasher.
++func NewSHA384() hash.Hash {
++	return &sha384Hash{
++		evpHash: newEvpHash(
++			func(ctx unsafe.Pointer) C.int { return C.CC_SHA384_Init((*C.CC_SHA512_CTX)(ctx)) },
++			func(ctx unsafe.Pointer, data []byte) C.int {
++				return C.CC_SHA384_Update((*C.CC_SHA512_CTX)(ctx), unsafe.Pointer(&*addr(data)), C.CC_LONG(len(data)))
++			},
++			func(ctx unsafe.Pointer, digest []byte) C.int {
++				return C.CC_SHA384_Final(base(digest), (*C.CC_SHA512_CTX)(ctx))
++			},
++			C.sizeof_CC_SHA512_CTX,
++			C.CC_SHA384_BLOCK_BYTES,
++			C.CC_SHA384_DIGEST_LENGTH,
++		),
++	}
++}
++
++type sha512Hash struct {
++	*evpHash
++}
++
++// NewSHA512 initializes a new SHA512 hasher.
++func NewSHA512() hash.Hash {
++	return &sha512Hash{
++		evpHash: newEvpHash(
++			func(ctx unsafe.Pointer) C.int { return C.CC_SHA512_Init((*C.CC_SHA512_CTX)(ctx)) },
++			func(ctx unsafe.Pointer, data []byte) C.int {
++				return C.CC_SHA512_Update((*C.CC_SHA512_CTX)(ctx), unsafe.Pointer(&*addr(data)), C.CC_LONG(len(data)))
++			},
++			func(ctx unsafe.Pointer, digest []byte) C.int {
++				return C.CC_SHA512_Final(base(digest), (*C.CC_SHA512_CTX)(ctx))
++			},
++			C.sizeof_CC_SHA512_CTX,
++			C.CC_SHA512_BLOCK_BYTES,
++			C.CC_SHA512_DIGEST_LENGTH,
++		),
++	}
++}
+diff --git a/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/hkdf.go b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/hkdf.go
+new file mode 100644
+index 00000000000000..3ca1dc31439f17
+--- /dev/null
++++ b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/hkdf.go
+@@ -0,0 +1,66 @@
++// Copyright (c) Microsoft Corporation.
++// Licensed under the MIT License.
++
++//go:build darwin
++
++package xcrypto
++
++import (
++	"errors"
++	"hash"
++
++	"github.com/microsoft/go-crypto-darwin/internal/cryptokit"
++)
++
++// ExtractHKDF performs the extract step of HKDF using the specified hash function.
++func ExtractHKDF(h func() hash.Hash, secret, salt []byte) ([]byte, error) {
++	// Handle empty secret
++	if len(secret) == 0 {
++		return nil, errors.New("secret cannot be empty")
++	}
++
++	hash, err := hashToCryptoHash(h())
++	if err != nil {
++		return nil, err
++	}
++
++	// Default salt to a zero-filled array if not provided
++	if len(salt) == 0 {
++		salt = make([]byte, hash.Size())
++	}
++
++	prk, err := cryptokit.ExtractHKDF(hash, secret, salt)
++	if err != nil {
++		return nil, err
++	}
++
++	return prk, nil
++}
++
++// ExpandHKDF performs the expand step of HKDF using the specified hash function.
++func ExpandHKDF(h func() hash.Hash, pseudorandomKey, info []byte, keyLength int) ([]byte, error) {
++	// Handle empty secret
++	if len(pseudorandomKey) == 0 {
++		return nil, errors.New("pseudorandom key cannot be empty")
++	}
++
++	hash, err := hashToCryptoHash(h())
++	if err != nil {
++		return nil, err
++	}
++
++	// Determine the maximum expandable key length based on the hash function
++	maxAllowedLength := hash.Size() * 255
++
++	// Validate requested key length
++	if keyLength > maxAllowedLength {
++		return nil, errors.New("requested key length exceeds maximum allowable size")
++	}
++
++	expandedKey, err := cryptokit.ExpandHKDF(hash, pseudorandomKey, info, keyLength)
++	if err != nil {
++		return nil, err
++	}
++
++	return expandedKey, nil
++}
+diff --git a/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/hmac.go b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/hmac.go
+new file mode 100644
+index 00000000000000..1894528cda5930
+--- /dev/null
++++ b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/hmac.go
+@@ -0,0 +1,113 @@
++// Copyright (c) Microsoft Corporation.
++// Licensed under the MIT License.
++
++//go:build darwin
++
++package xcrypto
++
++// #include <CommonCrypto/CommonCrypto.h>
++import "C"
++import (
++	"errors"
++	"hash"
++	"runtime"
++	"slices"
++)
++
++// commonCryptoHMAC encapsulates an HMAC using xcrypto.
++type commonCryptoHMAC struct {
++	ctx       C.CCHmacContext
++	alg       C.CCAlgorithm
++	key       []byte
++	output    []byte
++	size      int
++	blockSize int
++}
++
++// NewHMAC returns a new HMAC using xcrypto.
++// The function h must return a hash implemented by
++// CommonCrypto (for example, h could be xcrypto.NewSHA256).
++// If h is not recognized, NewHMAC returns nil.
++func NewHMAC(fh func() hash.Hash, key []byte) hash.Hash {
++	h := fh()
++	ccDigest, err := hashToCCDigestHMAC(h)
++	if err != nil {
++		return nil // Unsupported hash function.
++	}
++
++	// Handle empty key case to match CommonCrypto's behavior.
++	if len(key) == 0 {
++		key = make([]byte, C.CC_SHA512_DIGEST_LENGTH)
++	} else {
++		key = slices.Clone(key)
++	}
++
++	hmac := &commonCryptoHMAC{
++		alg:       ccDigest,
++		key:       key,
++		size:      h.Size(),
++		blockSize: h.BlockSize(),
++	}
++
++	// Initialize the HMAC context with xcrypto.
++	C.CCHmacInit(&hmac.ctx, hmac.alg, pbase(hmac.key), C.size_t(len(hmac.key)))
++
++	return hmac
++}
++
++// Write adds more data to the running HMAC hash.
++func (h *commonCryptoHMAC) Write(p []byte) (int, error) {
++	if len(p) > 0 {
++		C.CCHmacUpdate(&h.ctx, pbase(p), C.size_t(len(p)))
++	}
++	runtime.KeepAlive(h)
++	return len(p), nil
++}
++
++// Sum appends the current HMAC of the data to `in`.
++func (h *commonCryptoHMAC) Sum(in []byte) []byte {
++	if h.output == nil {
++		h.output = make([]byte, h.size)
++	}
++	// Copy the context to preserve it for further operations after Sum is called.
++	hmacCtxCopy := h.ctx
++	C.CCHmacFinal(&hmacCtxCopy, pbase(h.output))
++	return append(in, h.output...)
++}
++
++// Reset resets the HMAC state to initial values.
++func (h *commonCryptoHMAC) Reset() {
++	// Re-initialize the HMAC context with the stored key and algorithm.
++	C.CCHmacInit(&h.ctx, h.alg, pbase(h.key), C.size_t(len(h.key)))
++	runtime.KeepAlive(h)
++}
++
++// Size returns the size of the HMAC output.
++func (h commonCryptoHMAC) Size() int {
++	return h.size
++}
++
++// BlockSize returns the block size of the underlying hash function.
++func (h commonCryptoHMAC) BlockSize() int {
++	return h.blockSize
++}
++
++// Mapping Go hash functions to CommonCrypto hash constants
++func hashToCCDigestHMAC(hash hash.Hash) (C.CCAlgorithm, error) {
++	switch hash.(type) {
++	case *md5Hash:
++		return C.kCCHmacAlgMD5, nil
++	case *sha1Hash:
++		return C.kCCHmacAlgSHA1, nil
++	case *sha224Hash:
++		return C.kCCHmacAlgSHA224, nil
++	case *sha256Hash:
++		return C.kCCHmacAlgSHA256, nil
++	case *sha384Hash:
++		return C.kCCHmacAlgSHA384, nil
++	case *sha512Hash:
++		return C.kCCHmacAlgSHA512, nil
++	default:
++		return 0, errors.New("unsupported hash function")
++	}
++}
+diff --git a/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/pbkdf2.go b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/pbkdf2.go
+new file mode 100644
+index 00000000000000..e49dc1c0de3cef
+--- /dev/null
++++ b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/pbkdf2.go
+@@ -0,0 +1,65 @@
++// Copyright (c) Microsoft Corporation.
++// Licensed under the MIT License.
++
++//go:build darwin
++
++package xcrypto
++
++// #include <CommonCrypto/CommonCrypto.h>
++import "C"
++import (
++	"errors"
++	"hash"
++	"unsafe"
++)
++
++func PBKDF2(password, salt []byte, iter, keyLen int, fh func() hash.Hash) ([]byte, error) {
++	// Map Go hash function to CommonCrypto hash constant
++	ccDigest, err := hashToCCDigestPBKDF2(fh())
++	if err != nil {
++		return nil, err
++	}
++
++	if len(password) == 0 {
++		// CommonCrypto requires a non-empty password
++		// Substitute empty password with placeholder
++		password = make([]byte, 1)
++	}
++
++	// Allocate output buffer for the derived key
++	derivedKey := make([]byte, keyLen)
++
++	// Call CommonCrypto's PBKDF2 implementation
++	status := C.CCKeyDerivationPBKDF(
++		C.kCCPBKDF2,                              // PBKDF2 algorithm
++		sbase(password), C.size_t(len(password)), // Password and its length
++		base(salt), C.size_t(len(salt)), // Salt and its length
++		ccDigest,     // Digest algorithm
++		C.uint(iter), // Iteration count
++		(*C.uchar)(unsafe.Pointer(&derivedKey[0])), C.size_t(keyLen), // Output buffer for derived key and its length
++	)
++
++	if status != C.kCCSuccess {
++		return nil, errors.New("PBKDF2 key derivation failed")
++	}
++
++	return derivedKey, nil
++}
++
++// Mapping Go hash functions to CommonCrypto hash constants
++func hashToCCDigestPBKDF2(hash hash.Hash) (C.CCAlgorithm, error) {
++	switch hash.(type) {
++	case *sha1Hash:
++		return C.kCCPRFHmacAlgSHA1, nil
++	case *sha224Hash:
++		return C.kCCPRFHmacAlgSHA224, nil
++	case *sha256Hash:
++		return C.kCCPRFHmacAlgSHA256, nil
++	case *sha384Hash:
++		return C.kCCPRFHmacAlgSHA384, nil
++	case *sha512Hash:
++		return C.kCCPRFHmacAlgSHA512, nil
++	default:
++		return 0, errors.New("unsupported hash function")
++	}
++}
+diff --git a/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/rand.go b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/rand.go
+new file mode 100644
+index 00000000000000..e58c0b3b19a68b
+--- /dev/null
++++ b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/rand.go
+@@ -0,0 +1,26 @@
++// Copyright (c) Microsoft Corporation.
++// Licensed under the MIT License.
++
++//go:build darwin
++
++package xcrypto
++
++// #include <Security/SecRandom.h>
++import "C"
++import (
++	"errors"
++	"unsafe"
++)
++
++type randReader int
++
++func (randReader) Read(b []byte) (int, error) {
++	// Note: RAND_bytes should never fail; the return value exists only for historical reasons.
++	// We check it even so.
++	if len(b) > 0 && C.SecRandomCopyBytes(C.kSecRandomDefault, C.size_t(len(b)), unsafe.Pointer(&b[0])) != 0 {
++		return 0, errors.New("crypto/rand: unable to read from source")
++	}
++	return len(b), nil
++}
++
++const RandReader = randReader(0)
+diff --git a/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/rc4.go b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/rc4.go
+new file mode 100644
+index 00000000000000..30e10b9f87d5d7
+--- /dev/null
++++ b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/rc4.go
+@@ -0,0 +1,82 @@
++// Copyright (c) Microsoft Corporation.
++// Licensed under the MIT License.
++
++//go:build darwin
++
++package xcrypto
++
++// #include <CommonCrypto/CommonCrypto.h>
++import "C"
++import (
++	"errors"
++	"runtime"
++	"slices"
++)
++
++// RC4Cipher is an instance of RC4 using a particular key.
++type RC4Cipher struct {
++	ctx C.CCCryptorRef
++}
++
++// NewRC4Cipher creates and returns a new RC4 cipher with the given key.
++func NewRC4Cipher(key []byte) (*RC4Cipher, error) {
++	// Clone the key to prevent modification.
++	key = slices.Clone(key)
++	var ctx C.CCCryptorRef
++	status := C.CCCryptorCreate(
++		C.kCCEncrypt,       // Operation (RC4 stream)
++		C.kCCAlgorithmRC4,  // Algorithm
++		0,                  // No padding or other options
++		pbase(key),         // Key
++		C.size_t(len(key)), // Key length
++		nil,                // No IV needed for RC4
++		&ctx,               // Output: CCCryptorRef
++	)
++	if status != C.kCCSuccess {
++		return nil, errors.New("failed to create RC4 cipher")
++	}
++	c := &RC4Cipher{ctx: ctx}
++	runtime.SetFinalizer(c, (*RC4Cipher).finalize)
++	return c, nil
++}
++
++// finalize releases the RC4 cipher context when no longer needed.
++func (c *RC4Cipher) finalize() {
++	if c.ctx != nil {
++		C.CCCryptorRelease(c.ctx)
++	}
++}
++
++// Reset zeros the key data and makes the cipher unusable.
++func (c *RC4Cipher) Reset() {
++	if c.ctx != nil {
++		C.CCCryptorRelease(c.ctx)
++		c.ctx = nil
++	}
++}
++
++// XORKeyStream sets dst to the result of XORing src with the key stream.
++func (c *RC4Cipher) XORKeyStream(dst, src []byte) {
++	if c.ctx == nil || len(src) == 0 {
++		return
++	}
++	if inexactOverlap(dst[:len(src)], src) {
++		panic("crypto/rc4: invalid buffer overlap")
++	}
++	// Ensures `dst` has sufficient space.
++	_ = dst[len(src)-1]
++	var outLen C.size_t
++	status := C.CCCryptorUpdate(
++		c.ctx,
++		pbase(src), C.size_t(len(src)), // Input
++		pbase(dst), C.size_t(len(dst)), // Output
++		&outLen,
++	)
++	if status != C.kCCSuccess {
++		panic("crypto/cipher: CCCryptorUpdate failed")
++	}
++	if int(outLen) != len(src) {
++		panic("crypto/rc4: src not fully XORed")
++	}
++	runtime.KeepAlive(c)
++}
+diff --git a/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/rsa.go b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/rsa.go
+new file mode 100644
+index 00000000000000..0da122927bd599
+--- /dev/null
++++ b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/rsa.go
+@@ -0,0 +1,176 @@
++// Copyright (c) Microsoft Corporation.
++// Licensed under the MIT License.
++
++//go:build darwin
++
++package xcrypto
++
++// #include <Security/Security.h>
++import "C"
++import (
++	"crypto"
++	"hash"
++	"runtime"
++	"strconv"
++)
++
++// GenerateKeyRSA generates an RSA key pair on macOS.
++// asn1Data is encoded as PKCS#1 ASN1 DER.
++func GenerateKeyRSA(bits int) (asn1Data []byte, err error) {
++	privKeyDER, privKeyRef, err := createSecKeyRandom(C.kSecAttrKeyTypeRSA, bits)
++	defer C.CFRelease(C.CFTypeRef(privKeyRef))
++	if err != nil {
++		return nil, err
++	}
++	return privKeyDER, nil
++}
++
++type PublicKeyRSA struct {
++	// _pkey MUST NOT be accessed directly. Instead, use the withKey method.
++	_pkey C.SecKeyRef
++}
++
++func (k *PublicKeyRSA) finalize() {
++	if k._pkey != 0 {
++		C.CFRelease(C.CFTypeRef(k._pkey))
++	}
++}
++
++// NewPublicKeyRSA creates a new RSA public key from ASN1 DER encoded data.
++func NewPublicKeyRSA(asn1Data []byte) (*PublicKeyRSA, error) {
++	pubKeyRef, err := createSecKeyWithData(asn1Data, C.kSecAttrKeyTypeRSA, C.kSecAttrKeyClassPublic)
++	if err != nil {
++		return nil, err
++	}
++
++	key := &PublicKeyRSA{_pkey: *pubKeyRef}
++	runtime.SetFinalizer(key, (*PublicKeyRSA).finalize)
++	return key, nil
++}
++
++func (k *PublicKeyRSA) withKey(f func(C.SecKeyRef) C.int) C.int {
++	// Because of the finalizer, any time key is passed to cgo, that call must
++	// be followed by a call to runtime.KeepAlive, to make sure k is not
++	// collected (and finalized) before the cgo call returns.
++	defer runtime.KeepAlive(k)
++	return f(k._pkey)
++}
++
++type PrivateKeyRSA struct {
++	// _pkey MUST NOT be accessed directly. Instead, use the withKey method.
++	_pkey C.SecKeyRef
++}
++
++func (k *PrivateKeyRSA) finalize() {
++	if k._pkey != 0 {
++		C.CFRelease(C.CFTypeRef(k._pkey))
++	}
++}
++
++// NewPrivateKeyRSA creates a new RSA private key from ASN1 DER encoded data.
++func NewPrivateKeyRSA(asn1Data []byte) (*PrivateKeyRSA, error) {
++	privKeyRef, err := createSecKeyWithData(asn1Data, C.kSecAttrKeyTypeRSA, C.kSecAttrKeyClassPrivate)
++	if err != nil {
++		return nil, err
++	}
++
++	key := &PrivateKeyRSA{_pkey: *privKeyRef}
++	runtime.SetFinalizer(key, (*PrivateKeyRSA).finalize)
++	return key, nil
++}
++
++func (k *PrivateKeyRSA) PublicKey() *PublicKeyRSA {
++	var pubKeyRef C.SecKeyRef
++	k.withKey(func(key C.SecKeyRef) C.int {
++		pubKeyRef = C.SecKeyCopyPublicKey(k._pkey)
++		return 0
++	})
++	pubKey := &PublicKeyRSA{_pkey: pubKeyRef}
++	runtime.SetFinalizer(pubKey, (*PublicKeyRSA).finalize)
++	return pubKey
++}
++
++func (k *PrivateKeyRSA) withKey(f func(C.SecKeyRef) C.int) C.int {
++	// Because of the finalizer, any time _pkey is passed to cgo, that call must
++	// be followed by a call to runtime.KeepAlive, to make sure k is not
++	// collected (and finalized) before the cgo call returns.
++	defer runtime.KeepAlive(k)
++	return f(k._pkey)
++}
++
++// DecryptRSAOAEP decrypts data using RSA-OAEP.
++func DecryptRSAOAEP(h hash.Hash, priv *PrivateKeyRSA, ciphertext, label []byte) ([]byte, error) {
++	return evpDecrypt(priv.withKey, algorithmTypeOAEP, ciphertext, h)
++}
++
++// EncryptRSAOAEP encrypts data using RSA-OAEP.
++func EncryptRSAOAEP(h hash.Hash, pub *PublicKeyRSA, msg, label []byte) ([]byte, error) {
++	return evpEncrypt(pub.withKey, algorithmTypeOAEP, msg, h)
++}
++
++// SignRSAPSS signs data with RSA-PSS.
++func SignRSAPSS(priv *PrivateKeyRSA, h crypto.Hash, hashed []byte, saltLen int) ([]byte, error) {
++	return evpSign(priv.withKey, algorithmTypePSS, h, hashed)
++}
++
++// VerifyRSAPSS verifies data with RSA-PSS.
++func VerifyRSAPSS(pub *PublicKeyRSA, h crypto.Hash, hashed, sig []byte, saltLen int) error {
++	return evpVerify(pub.withKey, algorithmTypePSS, h, hashed, sig)
++}
++
++func SignRSAPKCS1v15(priv *PrivateKeyRSA, h crypto.Hash, hashed []byte) ([]byte, error) {
++	return evpSign(priv.withKey, algorithmTypePKCS1v15Sig, h, hashed)
++}
++
++func VerifyRSAPKCS1v15(pub *PublicKeyRSA, h crypto.Hash, hashed, sig []byte) error {
++	return evpVerify(pub.withKey, algorithmTypePKCS1v15Sig, h, hashed, sig)
++}
++
++// DecryptRSAPKCS1 decrypts data using RSA PKCS#1 v1.5 padding.
++func DecryptRSAPKCS1(priv *PrivateKeyRSA, ciphertext []byte) ([]byte, error) {
++	return evpDecrypt(priv.withKey, algorithmTypePKCS1v15Enc, ciphertext, nil)
++}
++
++// EncryptRSAPKCS1 encrypts data using RSA PKCS#1 v1.5 padding.
++func EncryptRSAPKCS1(pub *PublicKeyRSA, msg []byte) ([]byte, error) {
++	return evpEncrypt(pub.withKey, algorithmTypePKCS1v15Enc, msg, nil)
++}
++
++func DecryptRSANoPadding(priv *PrivateKeyRSA, ciphertext []byte) ([]byte, error) {
++	return evpDecrypt(priv.withKey, algorithmTypeRAW, ciphertext, nil)
++}
++
++func EncryptRSANoPadding(pub *PublicKeyRSA, msg []byte) ([]byte, error) {
++	return evpEncrypt(pub.withKey, algorithmTypeRAW, msg, nil)
++}
++
++// Helper functions
++
++type cfError struct {
++	code    int
++	message string
++}
++
++func (e cfError) Error() string {
++	if e.message == "" {
++		return "CFError(" + strconv.Itoa(e.code) + "): unknown error"
++	}
++	return "CFError(" + strconv.Itoa(e.code) + "): " + e.message
++}
++
++func goCFErrorRef(ref C.CFErrorRef) error {
++	if ref == 0 {
++		return nil
++	}
++	var message string
++	if desc := C.CFErrorCopyDescription(ref); desc != C.CFStringRef(0) {
++		defer C.CFRelease(C.CFTypeRef(desc))
++		if cstr := C.CFStringGetCStringPtr(desc, C.kCFStringEncodingUTF8); cstr != nil {
++			message = C.GoString(cstr)
++		}
++	}
++	return &cfError{
++		code:    int(C.CFErrorGetCode(ref)),
++		message: message,
++	}
++}
+diff --git a/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/xcrypto.go b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/xcrypto.go
+new file mode 100644
+index 00000000000000..9451d05599f3a8
+--- /dev/null
++++ b/src/vendor/github.com/microsoft/go-crypto-darwin/xcrypto/xcrypto.go
+@@ -0,0 +1,59 @@
++// Copyright (c) Microsoft Corporation.
++// Licensed under the MIT License.
++
++//go:build darwin
++
++package xcrypto
++
++// #cgo CFLAGS: -Wno-deprecated-declarations
++import "C"
++import "unsafe"
++
++// noescape hides a pointer from escape analysis. noescape is
++// the identity function but escape analysis doesn't think the
++// output depends on the input. noescape is inlined and currently
++// compiles down to zero instructions.
++// USE CAREFULLY!
++//
++//go:nosplit
++func noescape(p unsafe.Pointer) unsafe.Pointer {
++	x := uintptr(p)
++	return unsafe.Pointer(x ^ 0)
++}
++
++var zero byte
++
++// addr converts p to its base addr, including a noescape along the way.
++// If p is nil, addr returns a non-nil pointer, so that the result can always
++// be dereferenced.
++//
++//go:nosplit
++func addr(p []byte) *byte {
++	if len(p) == 0 {
++		return &zero
++	}
++	return (*byte)(noescape(unsafe.Pointer(&p[0])))
++}
++
++// base returns the address of the underlying array in b,
++// being careful not to panic when b has zero length.
++func base(b []byte) *C.uchar {
++	if len(b) == 0 {
++		return nil
++	}
++	return (*C.uchar)(unsafe.Pointer(&b[0]))
++}
++
++func sbase(b []byte) *C.char {
++	if len(b) == 0 {
++		return nil
++	}
++	return (*C.char)(unsafe.Pointer(&b[0]))
++}
++
++func pbase(b []byte) unsafe.Pointer {
++	if len(b) == 0 {
++		return nil
++	}
++	return unsafe.Pointer(&b[0])
++}
 diff --git a/src/vendor/github.com/microsoft/go-crypto-winnative/LICENSE b/src/vendor/github.com/microsoft/go-crypto-winnative/LICENSE
 new file mode 100644
 index 00000000000000..9e841e7a26e4eb
@@ -11541,14 +14398,19 @@ index 00000000000000..1722410e5af193
 +	return getSystemDirectory() + "\\" + dll
 +}
 diff --git a/src/vendor/modules.txt b/src/vendor/modules.txt
-index 1c8de570cc2f1f..9df7e15cd2ddde 100644
+index 1c8de570cc2f1f..2031bca0545e84 100644
 --- a/src/vendor/modules.txt
 +++ b/src/vendor/modules.txt
-@@ -1,3 +1,14 @@
+@@ -1,3 +1,19 @@
 +# github.com/golang-fips/openssl/v2 v2.0.4-0.20241211125030-65f2a3ae34cf
 +## explicit; go 1.22
 +github.com/golang-fips/openssl/v2
 +github.com/golang-fips/openssl/v2/bbig
++# github.com/microsoft/go-crypto-darwin v0.0.2-0.20241218125545-263581a6451b
++## explicit; go 1.22
++github.com/microsoft/go-crypto-darwin/bbig
++github.com/microsoft/go-crypto-darwin/internal/cryptokit
++github.com/microsoft/go-crypto-darwin/xcrypto
 +# github.com/microsoft/go-crypto-winnative v0.0.0-20241212090637-6d419040e383
 +## explicit; go 1.22
 +github.com/microsoft/go-crypto-winnative/cng

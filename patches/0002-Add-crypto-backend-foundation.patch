@@ -68,6 +68,7 @@ Subject: [PATCH] Add crypto backend foundation
  src/crypto/tls/handshake_server_tls13.go      |  10 +
  src/crypto/tls/internal/fips140tls/fipstls.go |   3 +-
  src/crypto/tls/prf.go                         |  41 ++++
+ src/go/build/buildbackend_test.go             |   2 +-
  src/go/build/deps_test.go                     |   8 +-
  src/hash/boring_test.go                       |   9 +
  src/hash/example_test.go                      |   2 +
@@ -75,7 +76,7 @@ Subject: [PATCH] Add crypto backend foundation
  src/hash/notboring_test.go                    |   9 +
  src/net/smtp/smtp_test.go                     |  72 ++++--
  src/runtime/runtime_boring.go                 |   5 +
- 71 files changed, 1159 insertions(+), 80 deletions(-)
+ 72 files changed, 1160 insertions(+), 81 deletions(-)
  create mode 100644 src/crypto/dsa/boring.go
  create mode 100644 src/crypto/dsa/notboring.go
  create mode 100644 src/crypto/ed25519/boring.go
@@ -2242,6 +2243,19 @@ index e7369542a73270..ff52175e4ac636 100644
  		return tls12.PRF(hashFunc, secret, label, seed, keyLen)
  	}
  }
+diff --git a/src/go/build/buildbackend_test.go b/src/go/build/buildbackend_test.go
+index 096b9b4566667c..aa3c5f1007ed79 100644
+--- a/src/go/build/buildbackend_test.go
++++ b/src/go/build/buildbackend_test.go
+@@ -55,7 +55,7 @@ func TestCryptoBackendAllTags(t *testing.T) {
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+-	want = []string{"goexperiment.boringcrypto", "goexperiment.cngcrypto", "goexperiment.opensslcrypto", "goexperiment.systemcrypto"}
++	want = []string{"goexperiment.boringcrypto", "goexperiment.cngcrypto", "goexperiment.darwincrypto", "goexperiment.opensslcrypto", "goexperiment.systemcrypto"}
+ 	if !reflect.DeepEqual(p.AllTags, want) {
+ 		t.Errorf("AllTags = %v, want %v", p.AllTags, want)
+ 	}
 diff --git a/src/go/build/deps_test.go b/src/go/build/deps_test.go
 index cc7f4df7f388ea..58082b3636f209 100644
 --- a/src/go/build/deps_test.go
